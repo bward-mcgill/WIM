@@ -1,3 +1,4 @@
 ww3/
 cice/
-post-proc/
+post-proc/*.ipynb
+post-proc/case*

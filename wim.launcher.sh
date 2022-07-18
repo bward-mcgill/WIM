@@ -46,7 +46,7 @@ else
    exit 1
 fi
 
-#rm -rf ${W3_REP_OUT} ${W3_REP_INP}/ice_forcing*
+rm -rf ${W3_REP_INP}/ice_forcing*
 
 # Ajouter une conditions qui regarde si les executables sont la.
 # If switch changed, need to redo setup and recompile.
@@ -96,6 +96,7 @@ fi
 ####----------------------Set up CICE environment -------------------#
 
 rm -rf ${CI_REP_MOD}/caselist*
+rm -rf ${CI_REP_OUT}/cice.runlog*
 
 ##If case doesn't exist, we create it. 
 if [ ! -e ${CI_REP_WRK} ]; then
@@ -152,7 +153,7 @@ i=0
 
 ###----------------------Run the WIM-------------------#
 list_ts=`python3 -c "import wimCouplerCice as couplerCice; couplerCice.createListTs(${year_init}, ${month_init}, ${day_init}, ${sec_init}, ${dt}, ${ndt})"`
-
+#
 for timeStep in ${list_ts}
 do
    cd ${CI_REP_WRK}
@@ -245,8 +246,12 @@ do
 done
 
 #Post-processing
+if ${bool_PP}; then
+   echo '|------------Post-Processing-------------|'
 
-if [ ! -d "${WIM_REP_PP}/${exp}" ]; then
-   mkdir -p "${WIM_REP_PP}/${exp}"
+   if [ ! -d "${WIM_REP_PP}/${exp}" ]; then
+      mkdir -p "${WIM_REP_PP}/${exp}"
+   fi
+
+   ${WIM_REP_PP}/plotWaveIce.py ${ndt} ${dt} ${year_init} ${month_init} ${day_init} ${sec_init} ${W3_REP_OUT} ${CI_REP_OUT}/history ${WIM_REP_PP}/${exp} -g ${default_exp} -f ${dt}
 fi
-
