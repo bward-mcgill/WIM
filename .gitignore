@@ -1,4 +1,5 @@
 ww3/
 cice/
-post-proc/*.ipynb
+post-proc/*ipynb
+post-proc/.ipynb_checkpoints/
 post-proc/case*
