@@ -1,0 +1,4 @@
+[submodule "WW3"]
+	path = WW3
+	url = https://github.com/bward-mcgill/WW3
+	branch = wim
