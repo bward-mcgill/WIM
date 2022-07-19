@@ -12,13 +12,13 @@ WIM_REP_TOOLS=${8}
 ((sec_end_new=sec_ini_new+dt))
 ((sec_rst_new=sec_ini_new+dt+dt))
 
-w3_start_new=`${WIM_REP_TOOLS}/wim.dateTime.py printTs ${year_new} ${month_new} ${day_new} ${sec_ini_new} 'WW3'`
+w3_start_new=`${WIM_REP_TOOLS}/wim_dateTime.py printTs ${year_new} ${month_new} ${day_new} ${sec_ini_new} 'WW3'`
 w3_start_new="${w3_start_new//-/ }"
 
-w3_end_new=`${WIM_REP_TOOLS}/wim.dateTime.py printTs ${year_new} ${month_new} ${day_new} ${sec_end_new} 'WW3'`
+w3_end_new=`${WIM_REP_TOOLS}/wim_dateTime.py printTs ${year_new} ${month_new} ${day_new} ${sec_end_new} 'WW3'`
 w3_end_new="${w3_end_new//-/ }"
 
-w3_endRst_new=`${WIM_REP_TOOLS}/wim.dateTime.py printTs ${year_new} ${month_new} ${day_new} ${sec_rst_new} 'WW3'`
+w3_endRst_new=`${WIM_REP_TOOLS}/wim_dateTime.py printTs ${year_new} ${month_new} ${day_new} ${sec_rst_new} 'WW3'`
 w3_endRst_new="${w3_endRst_new//-/ }"
 
 echo "|------------Update WW3 namelists ${W3_REP_INP}/ww3_shel(ounf)_${exp}.inp-------------|"

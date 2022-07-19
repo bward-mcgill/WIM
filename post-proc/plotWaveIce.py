@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 #import matplotlib.colors as mcolors
 #import matplotlib.dates as mdates
+from wim_dateTime import createListDateTime
 from datetime import datetime, timedelta
 import matplotlib.animation as animation
 from PIL import Image
@@ -105,15 +106,15 @@ def animate(rep_img, exp_name, start, end):
                save_all=True,
                duration=3000, loop=0)
     
-def createListDateTime(init_dateTime, ts, nts):
-   list_ts=[]
-   start_day=init_dateTime
-   start_sec=init_dateTime.second
-   for i in range(nts):
-      new_day=start_day+timedelta(seconds=start_sec+i*ts)
+#def createListDateTime(init_dateTime, ts, nts):
+#   list_ts=[]
+#   start_day=init_dateTime
+#   start_sec=init_dateTime.second
+#   for i in range(nts):
+#      new_day=start_day+timedelta(seconds=start_sec+i*ts)
 #      list_ts.append(str(new_day.year).zfill(4)+str(new_day.month).zfill(2)+str(new_day.day).zfill(2)+str(new_day.hour*3600).zfill(5))
-      list_ts.append(new_day)
-   return list_ts
+#      list_ts.append(new_day)
+#   return list_ts
 
 
 def printDataModel(date, repI, model, index):

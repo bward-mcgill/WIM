@@ -1,10 +1,10 @@
 #!/bin/bash 
 
 # --------------------------------------------------------------------------  #
-# wim.runww3 : Run WW3 as part of a wave-in-ice model (WIM) coupled           # 
+# wim_runww3 : Run WW3 as part of a wave-in-ice model (WIM) coupled           # 
 #                with CICE.                                                   #
 #                                                                             #
-# use  : ./wim.runww3.sh ${REP_MOD} ${EXP} ${LIST_PROG}                       #
+# use  : ./wim_runww3.sh ${REP_MOD} ${EXP} ${LIST_PROG}                       #
 #                                                                             #
 #                                                      Benjamin Ward          #
 #                                                      June 2022              #

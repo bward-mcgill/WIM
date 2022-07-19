@@ -1,10 +1,10 @@
 #!/bin/bash 
 
 # --------------------------------------------------------------------------  #
-# wim.buildww3 : Compile WW3 as part of a wave-in-ice model (WIM) coupled     # 
+# wim_buildww3 : Compile WW3 as part of a wave-in-ice model (WIM) coupled     # 
 #                with CICE.                                                   #
 #                                                                             #
-# use  : ./wim.buildww3.sh ${REP_MOD} ${EXP} ${LIST_PROG}                     #
+# use  : ./wim_buildww3.sh ${REP_MOD} ${EXP} ${LIST_PROG}                     #
 #                                                                             #
 #                                                      Benjamin Ward          #
 #                                                      June 2022              #

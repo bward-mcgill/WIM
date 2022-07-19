@@ -1,10 +1,10 @@
 
 #! /bin/bash
 # --------------------------------------------------------------------------- #
-# wim.launcher.sh : Set up, compile, and launch CICE and WW3 sequentially     #
+# wim_launcher.sh : Set up, compile, and launch CICE and WW3 sequentially     #
 #                   and exchange variables in the coupled WIM framework       #
 #                                                                             #
-# use  : ./wim.launcher.sh                                                    #
+# use  : ./wim_launcher.sh                                                    #
 #                                                                             #
 #                                                      Benjamin Ward          #
 #                                                      June 2022              #
@@ -12,7 +12,7 @@
 # --------------------------------------------------------------------------- #
 
 #Source config file
-. wim.launcher.cfg
+. wim_launcher.cfg
 
 #Constants
 W3_REP_BIN=${W3_REP_MOD}/bin
@@ -32,7 +32,7 @@ REP_CDO="/opt/cdo/bin/"
 #Verify if exp exist.
 if [ ! -d ${W3_REP_INP} ]; then
    echo "--------------------WW3 create new case----------------------"
-   ${WIM_REP_TOOLS}/wim.cpCase.sh "default${default_exp}" "${exp}"
+   ${WIM_REP_TOOLS}/wim_cpCase.sh "default${default_exp}" "${exp}"
 fi
 
 switch_file=`cat ${W3_REP_INP}/switch_${exp}`
@@ -56,10 +56,10 @@ if [ "${switch_file}" != "${switch_default}" ]; then
    bash ${W3_REP_BIN}/w3_setup ${W3_REP_MOD} -c Gnu -s ${exp}
 
    echo '|------------Compile WW3-------------|'
-   bash ${WIM_REP_TOOLS}/wim.buildww3.sh ${W3_REP_MOD} ${exp} ${w3listProg}
+   bash ${WIM_REP_TOOLS}/wim_buildww3.sh ${W3_REP_MOD} ${exp} ${w3listProg}
 fi
 
-bash ${WIM_REP_TOOLS}/wim.checkBuildWW3.sh ${W3_REP_MOD} ${WIM_REP_TOOLS} ${W3_REP_WRK} ${exp} ${w3listProg}
+bash ${WIM_REP_TOOLS}/wim_checkBuildWW3.sh ${W3_REP_MOD} ${WIM_REP_TOOLS} ${W3_REP_WRK} ${exp} ${w3listProg}
 
 ####----------------------Set up CICE environment -------------------#
 
@@ -84,11 +84,11 @@ if [ ! -e ${CI_REP_WRK} ]; then
    csh ${CI_REP_WRK}/cice.build
 fi
 
-bash ${WIM_REP_TOOLS}/wim.checkBuildCICE.sh ${CI_REP_MOD} ${WIM_REP_TOOLS} ${CI_REP_WRK} ${CI_REP_OUT}
+bash ${WIM_REP_TOOLS}/wim_checkBuildCICE.sh ${CI_REP_MOD} ${WIM_REP_TOOLS} ${CI_REP_WRK} ${CI_REP_OUT}
 
 i=0
 ###----------------------Run the WIM-------------------#
-listDateTs=`${WIM_REP_TOOLS}/wim.dateTime.py printListTs ${year_init} ${month_init} ${day_init} ${sec_init} ${dtCoup} ${ndt}`
+listDateTs=`${WIM_REP_TOOLS}/wim_dateTime.py printListTs ${year_init} ${month_init} ${day_init} ${sec_init} ${dtCoup} ${ndt}`
 
 for dateTimeStep in ${listDateTs}
 do
@@ -107,8 +107,8 @@ do
       ts_int=$(echo $ts | sed 's/^0*//')
    fi
    ((tsp1_int=ts_int+dt))
-   dateTs=`${WIM_REP_TOOLS}/wim.dateTime.py printTs ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} 'CICE'`
-   dateTsp1=`${WIM_REP_TOOLS}/wim.dateTime.py printTs ${yyyy_int} ${mm_int} ${dd_int} ${tsp1_int} 'CICE'`
+   dateTs=`${WIM_REP_TOOLS}/wim_dateTime.py printTs ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} 'CICE'`
+   dateTsp1=`${WIM_REP_TOOLS}/wim_dateTime.py printTs ${yyyy_int} ${mm_int} ${dd_int} ${tsp1_int} 'CICE'`
    dateTsp1_w3=`echo "${dateTs//-}" | cut -c -8`
    dateTs_w3=`echo "${dateTsp1//-}" | cut -c -8`
 
@@ -123,20 +123,20 @@ do
         ice_ic='internal'
         wave_spec_file='unknown_wave_spec_file'
         wave_spec_type="none"
-        bash ${WIM_REP_TOOLS}/wim.updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
+        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
         ./cice.submit
       elif [ $i -eq 1 ]; then
         #Now we start simulation for real !
 	ice_ic='internal'
         wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
         wave_spec_type="random"
-        bash ${WIM_REP_TOOLS}/wim.updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
+        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
         ./cice.submit
       else
         ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
         wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
         wave_spec_type="random"
-        bash ${WIM_REP_TOOLS}/wim.updateIceIn.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
+        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
        ./cice.submit
        ${REP_CDO}/cdo aexpr,"fsdrad=fsdrad*2"  ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad 
        cp ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc
@@ -152,21 +152,21 @@ do
 
    if ${bool_coldStart}; then
       if [ $i -eq 0 ]; then
-        bash ${WIM_REP_TOOLS}/wim.updateInpWW3.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${dt} ${exp} ${W3_REP_INP} ${WIM_REP_TOOLS}
+        bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${dt} ${exp} ${W3_REP_INP} ${WIM_REP_TOOLS}
         rm -rf ${W3_REP_INP}/ice_forcing.nc
         ln -s ${CI_REP_OUT}/history/iceh_ic.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
-        bash ${WIM_REP_TOOLS}/wim.runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
+        bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
         ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTs_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTs}_efreq.nc"
         mv ${W3_REP_WRK}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
         mv ${W3_REP_WRK}/ww3.${dateTs_w3}.nc ${W3_REP_OUT}/ww3.${dateTs}.nc
         echo "Output are ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}.nc"
       else
         w3listProg="ww3_prnc ww3_shel ww3_ounf"
-        bash ${WIM_REP_TOOLS}/wim.updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP} ${WIM_REP_TOOLS}
+        bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP} ${WIM_REP_TOOLS}
         rm -rf ${W3_REP_INP}/ice_forcing-${dateTs}.nc
         mv ${W3_REP_INP}/ice_forcing.nc ${W3_REP_INP}/ice_forcing-${dateTs}.nc
         ln -s ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
-        bash ${WIM_REP_TOOLS}/wim.runww3.sh ${W3_REP_MOD} ${exp} ${date4name} ${ts} ${w3listProg}
+        bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${date4name} ${ts} ${w3listProg}
         ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTsp1_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc"
         mv ${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc
         mv ${W3_REP_WRK}/ww3.${dateTsp1_w3}.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc
@@ -174,7 +174,7 @@ do
       fi
    else
       #Make some verification here (if file is there).
-      #bash ${WIM_REP_TOOLS}/wim.updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP}
+      #bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP}
       echo "Hot start (not implemented yet)"
    fi
 #   python3 -c "import wimCouplerWW3 as couplerWW3; couplerWW3.exchangeVarWW3Cice('${nextTs}', '${W3_REP_OUT}' ,'${CI_REP_OUT}', '${date4name}')"

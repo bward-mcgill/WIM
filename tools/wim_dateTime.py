@@ -23,6 +23,16 @@ def printTsModel(yyyy, mm, dd, sssss, model):
    elif model == 'WW3':
       print(str(dayTs.year).zfill(4)+str(dayTs.month).zfill(2)+str(dayTs.day).zfill(2)+'-'+str(dayTs.hour).zfill(2)+str(dayTs.minute).zfill(2)+str(dayTs.second).zfill(2))
 
+def createListDateTime(init_dateTime, ts, nts):
+   list_ts=[]
+   start_day=init_dateTime
+   start_sec=init_dateTime.second
+   for i in range(nts):
+      new_day=start_day+timedelta(seconds=start_sec+i*ts)
+#      list_ts.append(str(new_day.year).zfill(4)+str(new_day.month).zfill(2)+str(new_day.day).zfill(2)+str(new_day.hour*3600).zfill(5))
+      list_ts.append(new_day)
+   return list_ts
+
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest='cmd')

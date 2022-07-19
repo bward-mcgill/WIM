@@ -1,9 +1,9 @@
 #!/bin/bash 
 
 # --------------------------------------------------------------------------- #
-# launcher_ww3.sh : Launch uncoupled simulation of WW3                        #
+# wim_launcherww3.sh : Launch uncoupled simulation of WW3                     #
 #                                                                             #
-# use  : ./wim.launcherww3.sh                                                    #
+# use  : ./wim_launcherww3.sh                                                 #
 #                                                                             #
 #                                                      Benjamin Ward          #
 #                                                      June 2022              #

@@ -1,6 +1,6 @@
 #! /bin/bash
 
-#launch : ./wim.cpCase.sh old_case new_case
+#launch : ./wim_cpCase.sh old_case new_case
 
 old_case=${1}
 new_case=${2}
