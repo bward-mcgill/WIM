@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
 
-import pandas as pd
+#import pandas as pd
 import numpy as np
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-import matplotlib.dates as mdates
+#import matplotlib.colors as mcolors
+#import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 import matplotlib.animation as animation
 from PIL import Image
