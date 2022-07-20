@@ -15,7 +15,7 @@ CI_REP_RST=${CI_REP_OUT}/restart
 
 export WWATCH3_NETCDF=NC4
 export NETCDF_CONFIG="/usr/bin/nc-config"
-REP_CDO="/opt/cdo/bin/"
+#REP_CDO="/opt/cdo/bin/"
 
 #----------------------Set up WW3 environment -------------------# 
 #Verify if exp exist.
@@ -74,4 +74,13 @@ if [ ! -e ${CI_REP_WRK} ]; then
 fi
 
 bash ${WIM_REP_TOOLS}/wim_checkBuildCICE.sh ${CI_REP_MOD} ${WIM_REP_TOOLS} ${CI_REP_WRK} ${CI_REP_OUT}
+
+#rm -f ${WIM_REP_TOOLS}/MD4Readme.txt
+#w3_list_src=`ls ${W3_REP_INP}/*.inp`
+#ci_list_src=`ls ${CI_REP_WRK}/ice_in`
+#list_src="${w3_list_src} ${ci_list_src}"
+#for file in $list_src
+#do
+#   md5sum $file >> ${WIM_REP_TOOLS}/MD4Readme.txt 
+#done
 
