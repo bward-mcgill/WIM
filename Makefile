@@ -1,12 +1,10 @@
 include wim_launcher.cfg
 
-ci_list_src=`find ${CI_REP_MOD}/cicecore/ -name "*.F90"`
-ip_list_src=`find ${CI_REP_MOD}/icepack/columnphysics/ -name "*.F90"`
-cice_list_src=${ci_list_src} ${ip_list_src}
-
 CI_REP_WRK=${CI_REP_MOD}/work/${exp}
 CI_REP_OUT=${CI_REP_MOD}/out/${exp}
-exeCICE=${CI_REP_OUT}/cice
+W3_REP_INP=${W3_REP_MOD}/inp/${exp}
+W3_REP_WRK=${W3_REP_MOD}/work/${exp}
+W3_REP_OUT=${W3_REP_MOD}/out/${exp}
 
 WIM_REP=${HOME}/wim
 
@@ -17,13 +15,13 @@ wim_launch: case README
 	@${WIM_REP}/wim_launcher.sh
 
 README: 
-	@${WIM_REP_TOOLS}/wim_makeREADME.sh
+	@${WIM_REP_TOOLS}/wim_makeREADME.sh ${W3_REP_INP} ${CI_REP_WRK} ${WIM_REP} ${WIM_REP_TOOLS} ${WIM_REP_PP} ${exp} ${year_init} ${month_init} ${day_init} ${sec_init} ${dtCoup} ${ndt} ${bool_coldStart}
 
 clean:
-	@${WIM_REP_TOOLS}/wim_clean.sh
+	@${WIM_REP_TOOLS}/wim_clean.sh ${W3_REP_MOD} ${W3_REP_WRK} ${W3_REP_OUT} ${W3_REP_INP} ${CI_REP_WRK} ${CI_REP_OUT} ${WIM_REP_PP}/${exp}
 
 #buildCICE: ${exeCICE} ${cice_list_src}
-	@echo '|------------CICE build-------------|'
+#	@echo '|------------CICE build-------------|'
 #	cd ${CI_REP_WRK}
 #	csh ${CI_REP_WRK}/cice.build
 

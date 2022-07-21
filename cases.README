@@ -1,2 +1,3 @@
-# List of runs and parameters
-
+Summary of the parameter used in each run.
+|Exp           |Start         |dtCoup        |ndt           |coldstart     |dtWW3         |PRO_WW3       |SIC_WW3       |SIS_WW3       |spec          |dtCICE        |nx            |ny            |dx            |gridtype      |runtype       |bathymetry_file|ncat          |nfsd          |ice_data_type |ice_data_conc |ice_data_dist |atm_data_type |ocn_data_type |
+|case10        |2005-1-1-0    |3600          |3             |true          |300           |3             |2             |2             |1             |3600.0        |100           |100           |25.e4         |'rectangular' |'initial'     |'unknown_bathy|5             |12            |'wim2p5'      |'c1'          |'uniform'     |'default'     |'calm'        |

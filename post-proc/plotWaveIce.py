@@ -31,7 +31,7 @@ def cleanGrdFiles_ww3(nparray_var2d, nparray_rst, def_v, convFac_ww3):
     
     return nparray_var2d
 
-def plot_waveIce(dateCICE, dateWW3, repW3, repCI, xG, yG, listV):
+def plot_waveIce(dateCICE, dateWW3, repW3, repCI, repOUT, xG, yG, listV):
     
     #orig_map=plt.cm.get_cmap('gist_earth')
     orig_map=plt.cm.get_cmap('Spectral')
@@ -87,7 +87,7 @@ def plot_waveIce(dateCICE, dateWW3, repW3, repCI, xG, yG, listV):
         
     plt.tight_layout()
     plt.subplots_adjust(top=0.97)
-    fig.savefig("/aos/home/bward/wim/post-proc/case12"+"/plotWaveIce_"+datestrW3, bbbox_to_anchor='tight', dpi=500)
+    fig.savefig(repOUT+"/plotWaveIce_"+datestrW3, bbbox_to_anchor='tight', dpi=500)
     print("------------plotWaveIce_"+datestrW3+" as been plotted---------------------")
     
 
@@ -192,7 +192,7 @@ def main():
         datetimeCI=ts+timedelta(seconds=timeStep)
         print("Time step "+str(i)+":",datetimeW3)
 #        #printDataModel(dateCI, REP_IN_CICE, 'CICE', i)
-        plot_waveIce(datetimeCI, datetimeW3, REP_IN_W3, REP_IN_CICE, xgrid, ygrid, list_var) #xgrid, ygrid, defValue, txt2ww3)
+        plot_waveIce(datetimeCI, datetimeW3, REP_IN_W3, REP_IN_CICE, REP_OUT, xgrid, ygrid, list_var) #xgrid, ygrid, defValue, txt2ww3)
         i=i+1
 #        #printDataModel(date, REP_IN, 'WW3')
 #        #fig, ax = plt.subplots(3,1,figsize=[8,12])

@@ -4,3 +4,5 @@ post-proc/*ipynb
 post-proc/.ipynb_checkpoints/
 tools/__pycache__/
 post-proc/case*
+post-proc/initial_test/
+*png

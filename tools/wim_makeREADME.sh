@@ -5,76 +5,85 @@
 
 W3_REP_INP=${1}
 CI_REP_WRK=${2}
-WIM_REP=${HOME}/wim
-WIM_REP_TOOLS=${3}
-WIM_REP_PP=${4}
-exp=${5}
-year=${6}
-month=${7}
-day=${8}
-sec=${9}
-coupFreq=${10}
-nts=${11}
+WIM_REP=${3}
+WIM_REP_TOOLS=${4}
+WIM_REP_PP=${5}
+exp=${6}
+year=${7}
+month=${8}
+day=${9}
+sec=${10}
+coupFreq=${11}
+nts=${12}
+coldstart=${13}
 
-#w3_list_src=`ls ${W3_REP_INP}/*.inp`
-#ci_list_src=`ls ${CI_REP_WRK}/ice_in`
-#list_src="${w3_list_src} ${ci_list_src}"
+if [ ! -d "${WIM_REP_PP}/${exp}" ]; then
+      mkdir -p "${WIM_REP_PP}/${exp}"
+fi
 
-#rm -f ${WIM_REP_TOOLS}/checkMD4Readme.txt
+echo "|------------Update ${exp}.README ! -------------|"
 
-#for file in $list_src
-#do
-#   md5sum $file >> ${WIM_REP_TOOLS}/checkMD4Readme.txt 
-#done
+echo "# Detailled parameter of the simulation." > ${WIM_REP_PP}/${exp}/${exp}.README
+echo "# Experience : ${exp}." >> ${WIM_REP_PP}/${exp}/${exp}.README
+echo "# Start : ${year}-${month}-${day}-${sec}." >> ${WIM_REP_PP}/${exp}/${exp}.README
+echo "# Coupling frequency : ${coupFreq}." >> ${WIM_REP_PP}/${exp}/${exp}.README
+echo "# Number of timestep : ${nts}." >> ${WIM_REP_PP}/${exp}/${exp}.README
+echo -e "# Last update : `date`. \n" >> ${WIM_REP_PP}/${exp}/${exp}.README
 
-#if ! $(cmp -s "${WIM_REP_TOOLS}/MD4Readme.txt" "${WIM_REP_TOOLS}/checkMD4Readme.txt"); then
-echo '|------------Make run => update README ! -------------|'
-#   rm -f ${WIM_REP_TOOLS}/MD4Readme.txt
-#
-#   for file in $list_src
-#   do
-#      md5sum $file >> ${WIM_REP_TOOLS}/MD4Readme.txt 
-#   done
+echo -e "#-------------------------------------------------ww3_grid.inp---------------------------------------------------# \n" >> ${WIM_REP_PP}/${exp}/${exp}.README
+cat ${W3_REP_INP}/ww3_grid_${exp}.inp >> ${WIM_REP_PP}/${exp}/${exp}.README 
+echo -e "\n" >> ${WIM_REP_PP}/${exp}/${exp}.README
 
-   echo "# Detailled parameter of the simulation." > ${WIM_REP_PP}/${exp}.README
-   echo "# Experience : ${exp}." >> ${WIM_REP_PP}/${exp}.README
-   echo "# Start : ${year}-${month}-${day}-${sec}." >> ${WIM_REP_PP}/${exp}.README
-   echo "# Coupling frequency : ${coupFreq}." >> ${WIM_REP_PP}/${exp}.README
-   echo "# Number of timestep : ${nts}." >> ${WIM_REP_PP}/${exp}.README
-   echo -e "# Last update : `date`. \n" >> ${WIM_REP_PP}/${exp}.README
+echo -e "#-------------------------------------------------ww3_strt.inp---------------------------------------------------# \n" >> ${WIM_REP_PP}/${exp}/${exp}.README
+cat ${W3_REP_INP}/ww3_strt_${exp}.inp >> ${WIM_REP_PP}/${exp}/${exp}.README
+echo -e "\n" >> ${WIM_REP_PP}/${exp}/${exp}.README
 
-#  echo "#-------------------------------------------------wim_launcher.cfg---------------------------------------------------#" >> ${WIM_REP_PP}/${exp}.README
+echo -e "#-------------------------------------------------ww3_shel.inp---------------------------------------------------# \n" >> ${WIM_REP_PP}/${exp}/${exp}.README
+cat ${W3_REP_INP}/ww3_shel_${exp}.inp >> ${WIM_REP_PP}/${exp}/${exp}.README 
+echo -e "\n" >> ${WIM_REP_PP}/${exp}/${exp}.README
 
-#   cat ${WIM_REP}/wim_launcher.cfg >> ${WIM_REP_PP}/${exp}.README
+echo -e "#-------------------------------------------------ice_in---------------------------------------------------# \n" >> ${WIM_REP_PP}/${exp}/${exp}.README
+cat ${CI_REP_WRK}/ice_in >> ${WIM_REP_PP}/${exp}/${exp}.README
 
-   echo -e "#-------------------------------------------------ww3_grid.inp---------------------------------------------------# \n" >> ${WIM_REP_PP}/${exp}.README
+echo '|------------Update cases.README ! -------------|'
 
-   cat ${W3_REP_INP}/ww3_grid_${exp}.inp >> ${WIM_REP_PP}/${exp}.README
- 
-   echo -e "\n" >> ${WIM_REP_PP}/${exp}.README
+header="Exp Start dtCoup ndt coldstart dtWW3 PRO_WW3 SIC_WW3 SIS_WW3 spec dtCICE nx ny dx gridtype runtype bathymetry_file ncat nfsd ice_data_type ice_data_conc ice_data_dist atm_data_type ocn_data_type"
 
-   echo -e "#-------------------------------------------------ww3_strt.inp---------------------------------------------------# \n" >> ${WIM_REP_PP}/${exp}.README
+dtWW3=`sed -n '8p' < ${W3_REP_INP}/ww3_grid_${exp}.inp | cut -c 3-5`
+PRO_WW3=`cat ${W3_REP_INP}/ww3_grid_${exp}.inp | sed -n -e 's/.*PRO//p' | cut -c -1`
+SIC_WW3=`cat ${W3_REP_INP}/ww3_grid_${exp}.inp | sed -n -e 's/.*SIC//p' | cut -c -1`
+SIS_WW3=`cat ${W3_REP_INP}/ww3_grid_${exp}.inp | sed -n -e 's/.*SIS//p' | cut -c -1`
+spec=`sed -n '3p' < ${W3_REP_INP}/ww3_strt_${exp}.inp`
+dtCICE=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    dt.*=//p'| cut -c -15`
+nx=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    nx_global.*=//p'| cut -c -15`
+ny=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ny_global.*=//p'| cut -c -15`
+dx=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    dxrect.*=//p'| cut -c -15`
+gridtype=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    grid_type.*=//p'| cut -c -15`
+runtype=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    runtype.*=//p'| cut -c -15`
+bathy=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    bathymetry_file.*=//p'| cut -c -15`
+ncat=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ncat.*=//p'| cut -c -15`
+nfsd=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    nfsd.*=//p'| cut -c -15`
+ice_type=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ice_data_type.*=//p'| cut -c -15`
+ice_conc=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ice_data_conc.*=//p'| cut -c -15`
+ice_dist=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ice_data_dist.*=//p'| cut -c -15`
+#wave_type=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    wave_spec_type.*=//p'| cut -c -14`
+atm_type=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    atm_data_type.*=//p'| cut -c -15`
+ocn_type=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ocn_data_type.*=//p'| cut -c -15`
 
-   cat ${W3_REP_INP}/ww3_strt_${exp}.inp >> ${WIM_REP_PP}/${exp}.README
- 
-   echo -e "\n" >> ${WIM_REP_PP}/${exp}.README
+params="${exp} ${year}-${month}-${day}-${sec} ${coupFreq} ${nts} ${coldstart} ${dtWW3} ${PRO_WW3} ${SIC_WW3} ${SIS_WW3} ${spec} ${dtCICE} ${nx} ${ny} ${dx} ${gridtype} ${runtype} ${bathy} ${ncat} ${nfsd} ${ice_type} ${ice_conc} ${ice_dist} ${atm_type} ${ocn_type}" 
 
-   echo -e "#-------------------------------------------------ww3_shel.inp---------------------------------------------------# \n" >> ${WIM_REP_PP}/${exp}.README
+if [ ! -e ${WIM_REP}/cases.README ]; then
+   echo "Summary of the parameter used in each run." > ${WIM_REP}/cases.README
+   printf '|%-14s' $header >> ${WIM_REP}/cases.README
+   printf '|' $params >> ${WIM_REP}/cases.README
+fi
 
-   cat ${W3_REP_INP}/ww3_shel_${exp}.inp >> ${WIM_REP_PP}/${exp}.README
- 
-   echo -e "\n" >> ${WIM_REP_PP}/${exp}.README
+bool_empty=`grep "|${exp}" ${WIM_REP}/cases.README`
 
-   echo -e "#-------------------------------------------------ice_in---------------------------------------------------# \n" >> ${WIM_REP_PP}/${exp}.README
-
-   cat ${CI_REP_WRK}/ice_in >> ${WIM_REP_PP}/${exp}.README
- 
-#else
-#   echo 'Input files didnt change, dont update readme'
-#fi
-
-# Create a summary of the readme in cases.README (just one line).
-
-# If detailled readme as been changed -> remove line and create a new one. 
-
-# Else 
+if [ "$bool_empty" == "" ]; then
+   printf '\n' >> ${WIM_REP}/cases.README
+   printf '|%-14s' $params >> ${WIM_REP}/cases.README
+   printf '|' >> ${WIM_REP}/cases.README
+else
+   sed -i "s/|${exp}.*/`printf '|%-14s' $params` | /g" ${WIM_REP}/cases.README
+fi

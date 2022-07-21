@@ -136,9 +136,5 @@ done
 if ${bool_PP}; then
    echo '|------------Post-Processing-------------|'
 
-   if [ ! -d "${WIM_REP_PP}/${exp}" ]; then
-      mkdir -p "${WIM_REP_PP}/${exp}"
-   fi
-
    ${WIM_REP_PP}/plotWaveIce.py ${ndt} ${dt} ${year_init} ${month_init} ${day_init} ${sec_init} ${W3_REP_OUT} ${CI_REP_OUT}/history ${WIM_REP_PP}/${exp} -g ${default_exp} -f ${dt}
 fi
