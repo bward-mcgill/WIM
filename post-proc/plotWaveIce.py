@@ -31,14 +31,18 @@ def cleanGrdFiles_ww3(nparray_var2d, nparray_rst, def_v, convFac_ww3):
     
     return nparray_var2d
 
-def plot_waveIce(dateCICE, dateWW3, repW3, repCI, repOUT, xG, yG, listV):
-    
+def plot_waveIce(dateCICE, dateWW3, repW3, repCI, repOUT, exp, xG, yG, listV):
     #orig_map=plt.cm.get_cmap('gist_earth')
     orig_map=plt.cm.get_cmap('Spectral')
     reversed_map = orig_map.reversed()
+
+    if 'ic5' in listV:
+        datestrW3=str(dateWW3.year).zfill(4)+str(dateWW3.month).zfill(2)+str(dateWW3.day).zfill(2)+"T"+str(dateWW3.hour).zfill(2)+"Z"
+    else:
+        datestrW3=str(dateWW3.year).zfill(4)+"-"+str(dateWW3.month).zfill(2)+"-"+str(dateWW3.day).zfill(2)+"-"+str(dateWW3.hour*3600).zfill(5)
+
     datestrCI=str(dateCICE.year).zfill(4)+"-"+str(dateCICE.month).zfill(2)+"-"+str(dateCICE.day).zfill(2)+"-"+str(dateCICE.hour*3600).zfill(5)
-    datestrW3=str(dateWW3.year).zfill(4)+"-"+str(dateWW3.month).zfill(2)+"-"+str(dateWW3.day).zfill(2)+"-"+str(dateWW3.hour*3600).zfill(5)
-    
+
     file_dataW3=repW3+"/ww3."+datestrW3+".nc"
     file_dataCI=repCI+"/iceh_01h."+datestrCI+".nc"
         
@@ -63,7 +67,10 @@ def plot_waveIce(dateCICE, dateWW3, repW3, repCI, repOUT, xG, yG, listV):
     fig, ax = plt.subplots(len(listV),1,figsize=[8,4*len(listV)])
     i=0
     for v in listV:
-        var_2d=np.nan_to_num(dsCI[[v]][v].values.squeeze())  
+        if v == 'ic1' or v == 'ice' or v == 'ic5':
+            var_2d=np.nan_to_num(dsW3[[v]][v].values.squeeze())
+        else:
+            var_2d=np.nan_to_num(dsCI[[v]][v].values.squeeze())  
         ax[i].set_xlim([2.5, 240])
         ax[i].set_ylim([2.5, 240])
         ax[i].tick_params(labelsize=14)
@@ -78,7 +85,6 @@ def plot_waveIce(dateCICE, dateWW3, repW3, repCI, repOUT, xG, yG, listV):
         
         if i == 0:
             cb.set_label('Ice Concentration', size=16)
-    
         if i == 1:
             cb.set_label('Ice Thickess [m]', size=16)
         if i == 2:
@@ -87,9 +93,59 @@ def plot_waveIce(dateCICE, dateWW3, repW3, repCI, repOUT, xG, yG, listV):
         
     plt.tight_layout()
     plt.subplots_adjust(top=0.97)
+    fig.savefig(repOUT+"/"+exp+"_WaveIce_"+datestrW3, bbbox_to_anchor='tight', dpi=500)
+    print("------------"+exp+"_WaveIce_"+datestrW3+" as been plotted---------------------")
+    
+def plot_waveIceNotCoupled(dateWW3, repW3, repOUT, xG, yG, listV):
+    #orig_map=plt.cm.get_cmap('gist_earth')
+    orig_map=plt.cm.get_cmap('Spectral')
+    reversed_map = orig_map.reversed()
+    datestrW3=str(dateWW3.year).zfill(4)+str(dateWW3.month).zfill(2)+str(dateWW3.day).zfill(2)+"T"+str(dateWW3.hour).zfill(2)+"Z"
+    file_dataW3=repW3+"/ww3."+datestrW3+".nc"
+    listV=['aice', 'hi', 'fsdrad']
+    file_dataCI='/aos/home/bward/wim/cice/out/case11/history/iceh_01h.2005-01-01-03600.nc'
+    print("File wave : ", file_dataW3)
+    print("File ice : ", file_dataCI)
+
+    dsW3=xr.open_dataset(file_dataW3)
+    hs_2d=np.nan_to_num(dsW3[['hs']]['hs'].values.squeeze())
+
+    dsCI=xr.open_dataset(file_dataCI)
+
+    X,Y = np.meshgrid(xG,yG)
+    fig, ax = plt.subplots(len(listV),1,figsize=[8,4*len(listV)])
+    i=0
+    for v in listV:
+
+        if i == 2:
+            var_2d=np.nan_to_num(dsW3[['ic5']]['ic5'].values.squeeze())
+        else:
+            var_2d=np.nan_to_num(dsCI[[v]][v].values.squeeze())
+            print(var_2d[1])
+
+        ax[i].set_xlim([2.5, 240])
+        ax[i].set_ylim([2.5, 240])
+        ax[i].tick_params(labelsize=14)
+        ax[i].set_xlabel('x [km]', size=16)
+        ax[i].set_ylabel('y [km]', size=16)
+        cont=ax[i].contour(X,Y, hs_2d, colors='black', levels=[0.01, 0.02, 0.04, 0.06, 0.1, 0.14, 0.2])
+        color=ax[i].contourf(X,Y,var_2d, 50, cmap=reversed_map)
+        ax[i].clabel(cont, fontsize= 12)
+        cb=fig.colorbar(color, ax=ax[i])
+        cb.ax.tick_params(labelsize=14)
+
+        if i == 0:
+            cb.set_label('Ice Concentration', size=16)
+        if i == 1:
+            cb.set_label('Ice Thickess [m]', size=16)
+        if i == 2:
+            cb.set_label('Mean Floe Diameter [m]', size=16)
+        i=i+1
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.97)
     fig.savefig(repOUT+"/plotWaveIce_"+datestrW3, bbbox_to_anchor='tight', dpi=500)
     print("------------plotWaveIce_"+datestrW3+" as been plotted---------------------")
-    
+
 
 def animate(rep_img, exp_name, start, end):
     # Create the frames
@@ -106,16 +162,6 @@ def animate(rep_img, exp_name, start, end):
                save_all=True,
                duration=3000, loop=0)
     
-#def createListDateTime(init_dateTime, ts, nts):
-#   list_ts=[]
-#   start_day=init_dateTime
-#   start_sec=init_dateTime.second
-#   for i in range(nts):
-#      new_day=start_day+timedelta(seconds=start_sec+i*ts)
-#      list_ts.append(str(new_day.year).zfill(4)+str(new_day.month).zfill(2)+str(new_day.day).zfill(2)+str(new_day.hour*3600).zfill(5))
-#      list_ts.append(new_day)
-#   return list_ts
-
 
 def printDataModel(date, repI, model, index):
     datestr=str(date.year).zfill(4)+"-"+str(date.month).zfill(2)+"-"+str(date.day).zfill(2)+"-"+str(date.hour*3600).zfill(5)
@@ -150,6 +196,7 @@ def main():
     parser.add_argument("rep_out", help="Enter the path to store plot.")
     parser.add_argument("-g", "--grid", help="Specify grid (default wim2p5)")
     parser.add_argument("-f", "--outfreq", help="Specify output frequency (default same as dt)", type=int)
+    parser.add_argument("-c", "--coupled", help="Specify if the run is coupled or not")
     args = parser.parse_args()
 
     #Define variables
@@ -157,14 +204,22 @@ def main():
     grid=args.grid
     outfreq=args.outfreq
     timeStep=args.dt
+    coupled=args.coupled
+
     nb_ts=args.nts
 
     if not grid:
        grid='wim2p5'
-    if not outfreq:
+    if not outfreq or outfreq == 0:
        outfreq=timeStep
+    if not coupled:
+       coupled="true"
+
     #list_var=['aice_ww', 'hice_ww', 'diam_ww'] #,'ic1','ic5'] #Ice concentration, Ice thickness, Mean floe size diameter
-    list_var=['aice', 'hi', 'fsdrad']
+    if coupled == "true":
+       list_var=['aice', 'hi', 'fsdrad']
+    elif coupled == "false":
+       list_var=['aice', 'hi', 'ic5']
 
     start_y=args.start_y
     start_d=args.start_d
@@ -173,26 +228,31 @@ def main():
     start_day=datetime(start_y, start_m, start_d)+timedelta(seconds=start_s)
 
     list_ts=createListDateTime(start_day, outfreq, nb_ts)
-
     REP_IN_W3=args.rep_inW3
     REP_IN_CICE=args.rep_inCI
     REP_OUT=args.rep_out
+
+    exp=REP_OUT[-6:]
 
     if grid == 'wim2p5':
        grdRes=2.5
        grdMax=247.5
        grdMin=-2.5
-    
     xgrid=np.arange(grdMin, grdMax, grdRes)
     ygrid=np.arange(grdMin, grdMax, grdRes)
     i=1            
 #    #Plot at each timestep
     for ts in list_ts:
         datetimeW3=ts
-        datetimeCI=ts+timedelta(seconds=timeStep)
         print("Time step "+str(i)+":",datetimeW3)
-#        #printDataModel(dateCI, REP_IN_CICE, 'CICE', i)
-        plot_waveIce(datetimeCI, datetimeW3, REP_IN_W3, REP_IN_CICE, REP_OUT, xgrid, ygrid, list_var) #xgrid, ygrid, defValue, txt2ww3)
+
+        if coupled == "true":
+            datetimeCI=ts+timedelta(seconds=timeStep)
+        elif coupled == "false":
+            datetimeCI=start_day+timedelta(seconds=timeStep)
+
+        plot_waveIce(datetimeCI, datetimeW3, REP_IN_W3, REP_IN_CICE, REP_OUT, exp, xgrid, ygrid, list_var) #xgrid, ygrid, defValue, txt2ww3)
+
         i=i+1
 #        #printDataModel(date, REP_IN, 'WW3')
 #        #fig, ax = plt.subplots(3,1,figsize=[8,12])

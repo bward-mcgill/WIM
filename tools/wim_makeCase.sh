@@ -13,6 +13,9 @@ CI_REP_WRK=${CI_REP_MOD}/work/${exp}
 CI_REP_OUT=${CI_REP_MOD}/out/${exp}
 CI_REP_RST=${CI_REP_OUT}/restart
 
+WIM_REP_PP=${WIM_REP}/post-proc
+WIM_REP_TOOLS=${WIM_REP}/tools
+
 export WWATCH3_NETCDF=NC4
 export NETCDF_CONFIG="/usr/bin/nc-config"
 #REP_CDO="/opt/cdo/bin/"
@@ -25,7 +28,7 @@ if [ ! -d ${W3_REP_INP} ]; then
 fi
 
 switch_file=`cat ${W3_REP_INP}/switch_${exp}`
-switch_default=`cat ${W3_REP_BIN}/switch_default${default_exp}`
+switch_old=`cat ${W3_REP_BIN}/switch`
 
 if [[ "$switch_file" == *"$WWATCH3_NETCDF"* ]]; then
    echo "Switch file contains ${WWATCH3_NETCDF}. NETCDF fortran librairies (compiled with GNU) are required to run ww3_prnc and ww3_ounf."
@@ -34,10 +37,8 @@ else
    exit 1
 fi
 
-rm -rf ${W3_REP_INP}/ice_forcing*
-
 # If switch changed, need to redo setup and recompile.
-if [ "${switch_file}" != "${switch_default}" ]; then
+if [ "${switch_file}" != "${switch_old}" ]; then
 
    echo '|------------Set up WW3-------------|'
    rm -f ${W3_REP_BIN}/switch_${exp}
@@ -52,15 +53,12 @@ bash ${WIM_REP_TOOLS}/wim_checkBuildWW3.sh ${W3_REP_MOD} ${WIM_REP_TOOLS} ${W3_R
 
 ####----------------------Set up CICE environment -------------------#
 
-rm -rf ${CI_REP_MOD}/caselist*
-rm -rf ${CI_REP_OUT}/cice.runlog*
-
 ##If case doesn't exist, we create it. 
 if [ ! -e ${CI_REP_WRK} ]; then
    echo '|------------CICE create new case-------------|'
 
    cd ${CI_REP_MOD}
-   csh ./cice.setup -m conda -e linux -c ${CI_REP_WRK} -s ${default_exp} -g gbox80 #-s buildincremental
+   csh ./cice.setup -m conda -e linux -c ${CI_REP_WRK} -g gx3 -s ${default_exp} #-s buildincremental
 
    echo '|------------Compile CICE-------------|'
    if [ ! -e ${CI_REP_WRK} ]; then
@@ -74,13 +72,4 @@ if [ ! -e ${CI_REP_WRK} ]; then
 fi
 
 bash ${WIM_REP_TOOLS}/wim_checkBuildCICE.sh ${CI_REP_MOD} ${WIM_REP_TOOLS} ${CI_REP_WRK} ${CI_REP_OUT}
-
-#rm -f ${WIM_REP_TOOLS}/MD4Readme.txt
-#w3_list_src=`ls ${W3_REP_INP}/*.inp`
-#ci_list_src=`ls ${CI_REP_WRK}/ice_in`
-#list_src="${w3_list_src} ${ci_list_src}"
-#for file in $list_src
-#do
-#   md5sum $file >> ${WIM_REP_TOOLS}/MD4Readme.txt 
-#done
 

@@ -6,19 +6,22 @@ W3_REP_INP=${W3_REP_MOD}/inp/${exp}
 W3_REP_WRK=${W3_REP_MOD}/work/${exp}
 W3_REP_OUT=${W3_REP_MOD}/out/${exp}
 
-WIM_REP=${HOME}/wim
+WIM_REP_PP=${WIM_REP}/post-proc
+WIM_REP_TOOLS=${WIM_REP}/tools
 
 case: ${WIM_REP}/wim_launcher.cfg
 	@${WIM_REP_TOOLS}/wim_makeCase.sh
 
-wim_launch: case README
+wim_launch: case
 	@${WIM_REP}/wim_launcher.sh
 
 README: 
-	@${WIM_REP_TOOLS}/wim_makeREADME.sh ${W3_REP_INP} ${CI_REP_WRK} ${WIM_REP} ${WIM_REP_TOOLS} ${WIM_REP_PP} ${exp} ${year_init} ${month_init} ${day_init} ${sec_init} ${dtCoup} ${ndt} ${bool_coldStart}
+	@${WIM_REP_TOOLS}/wim_makeREADME.sh ${W3_REP_WRK} ${CI_REP_WRK} ${WIM_REP} ${WIM_REP_TOOLS} ${WIM_REP_PP} ${exp} ${year_init} ${month_init} ${day_init} ${sec_init} ${dtCoup} ${ndt} ${bool_coldStart}
 
 clean:
 	@${WIM_REP_TOOLS}/wim_clean.sh ${W3_REP_MOD} ${W3_REP_WRK} ${W3_REP_OUT} ${W3_REP_INP} ${CI_REP_WRK} ${CI_REP_OUT} ${WIM_REP_PP}/${exp}
+
+#Eventuellement, enlever checkbuildCICE et remplacer dans le makefile. Mais le probleme c'est que ca fonctionne pas si executable est pas la et c'est une des choses que j'aimerais verifier. 
 
 #buildCICE: ${exeCICE} ${cice_list_src}
 #	@echo '|------------CICE build-------------|'
