@@ -1,7 +1,6 @@
 ww3/
 cice/
-post-proc/*ipynb
-post-proc/.ipynb_checkpoints/
+post-proc/*
 tools/__pycache__/
 post-proc/case*
 post-proc/initial_test/

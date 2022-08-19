@@ -58,7 +58,14 @@ if [ ! -e ${CI_REP_WRK} ]; then
    echo '|------------CICE create new case-------------|'
 
    cd ${CI_REP_MOD}
-   csh ./cice.setup -m conda -e linux -c ${CI_REP_WRK} -g gx3 -s ${default_exp} #-s buildincremental
+
+   if [ ${default_exp} == "wimgx3" ]; then
+      grid="gx3"
+   elif [ ${default_exp} == "wim2p5" ]; then
+      grid="gbox80"
+   fi
+
+   csh ./cice.setup -m conda -e linux -c ${CI_REP_WRK} -g ${grid} -s ${default_exp}
 
    echo '|------------Compile CICE-------------|'
    if [ ! -e ${CI_REP_WRK} ]; then

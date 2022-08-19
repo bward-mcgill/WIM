@@ -98,19 +98,4 @@ do
    fi
 done
 
-#------------------Move output and clean stuff--------------#
-
-#if ! $bool_NETCDF ; then
-#   mv ${REP_WRK}/ww3.*.* ${REP_OUT}/grd/
-#else
-#   mv ${REP_WRK}/ww3.*.nc ${REP_OUT}/grd/
-#fi
-#
-#mv ${REP_WRK}/tab*.ww3 ${REP_OUT}/ptn/
-#mv ${REP_WRK}/${prog}*.out ${REP_OUT}/ptn/
-
-#if [ ! -d ${REP_IMG} ]; then
-#   mkdir -p ${REP_IMG}
-#fi
-
 #-----------------------------THE END--------------------------------------------#

@@ -23,6 +23,7 @@ W3_REP_OUT=${W3_REP_MOD}/out/${exp}
 CI_REP_WRK=${CI_REP_MOD}/work/${exp}
 CI_REP_OUT=${CI_REP_MOD}/out/${exp}
 CI_REP_RST=${CI_REP_OUT}/restart
+CI_REP_INP=${CI_REP_MOD}/inp/CICE_data
 
 WIM_REP_PP=${WIM_REP}/post-proc
 WIM_REP_TOOLS=${WIM_REP}/tools
@@ -50,7 +51,6 @@ listDateTs=`${WIM_REP_TOOLS}/wim_dateTime.py printListTs ${year_init} ${month_in
 for dateTimeStep in ${listDateTs}
 do
    cd ${CI_REP_WRK}
-
    yyyy=`echo ${dateTimeStep} | cut -c -4`
    mm=`echo ${dateTimeStep} | cut -c 5-6` 
    dd=`echo ${dateTimeStep} | cut -c 7-8`
@@ -77,29 +77,49 @@ do
       if [ $i -eq 0 ]; then
         #Timestep 0 only job is to create a wave field !
         echo "Cold start !"
-#        ice_ic='internal'
-        ice_ic='/aos/home/bward/storage/cice-dirs/input/CICE_data/ic/gx3/iced_gx3_v5.nc'
+        ice_ic='internal'
         wave_spec_file='unknown_wave_spec_file'
         wave_spec_type="none"
         bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
         ./cice.submit
-      elif [ $i -eq 1 ]; then
+
+        if [ ${default_exp} == "wimgx3" ]; then
+           rm -f ${CI_REP_RST}/iced.fsd.nc ; ${REP_CDO}/cdo select,name=fsd001,fsd002,fsd003,fsd004,fsd005,fsd006,fsd007,fsd008,fsd009,fsd010,fsd011,fsd012 ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.fsd.nc > /dev/null 2>&1
+           rm -f ${CI_REP_RST}/iced.${dateTs}.nc ; ${REP_CDO}/cdo merge ${CI_REP_RST}/iced.fsd.nc ${CI_REP_INP}/ic/gx3/iced_gx3_v5.nc ${CI_REP_RST}/iced.${dateTs}.nc > /dev/null 2>&1
+           rm -f ${CI_REP_RST}/iced.${dateTsp1}.nc
+           if ! ${bool_Coupled}; then
+               ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
+               wave_spec_file='unknown_wave_spec_file'
+               wave_spec_type="none"
+               bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
+               ./cice.submit
+           fi
+        fi
+     elif [ $i -eq 1 ]; then
         #Now we start simulation for real !
-	ice_ic='internal'
-        wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
-        wave_spec_type="random"
-        #bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
-        #./cice.submit
-      else
+        if [ ${default_exp} == "wimgx3" ]; then
+            ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
+            wave_spec_file='unknown_wave_spec_file'
+            wave_spec_type="none"
+        elif [ ${default_exp} == "wim2p5" ]; then
+	     ice_ic='internal'
+            wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
+            wave_spec_type="random"
+        fi
+        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
+        ./cice.submit
+     else
         ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
-        wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
-        wave_spec_type="random"
-        #bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
-        #./cice.submit
+        wave_spec_file='unknown_wave_spec_file'
+        wave_spec_type="none"
+#        wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
+#        wave_spec_type="random"
+        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CI_REP_WRK}
+        ./cice.submit
       fi
 
-      ${REP_CDO}/cdo aexpr,"fsdrad=fsdrad*2"  ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad
-      cp ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc
+      ${REP_CDO}/cdo aexpr,"fsdrad=fsdrad*2"  ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad > /dev/null 2>&1
+      cp ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ; rm -f ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad
 
    else
       #Make some verification here.
@@ -108,57 +128,40 @@ do
       echo "wave_spec_file is required".
    fi
 
-#   echo '|------------Run WW3-------------|'
-#
-#   if ${bool_coldStart}; then
-#      if [ $i -eq 0 ]; then
-#        if ${bool_Coupled}; then
-#           bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${dt} ${exp} ${W3_REP_INP} ${WIM_REP_TOOLS}
-#           rm -rf ${W3_REP_INP}/ice_forcing.nc
-#            ln -s ${CI_REP_OUT}/history/iceh_ic.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
-#           bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
-#           ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTs_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTs}_efreq.nc"
-#           mv ${W3_REP_WRK}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
-#           mv ${W3_REP_WRK}/ww3.${dateTs_w3}.nc ${W3_REP_OUT}/ww3.${dateTs}.nc
-#           echo "Output are ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}.nc"
-#        else
-#           rm -rf ${W3_REP_INP}/ice_forcing.nc
-#           ln -s ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
-#           bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
-#           mv ${W3_REP_WRK}/ww3.${dateTs_w3}*.nc ${W3_REP_OUT}/
-#        fi
-#      else
-#        w3listProg="ww3_prnc ww3_shel ww3_ounf"
-#        bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP} ${WIM_REP_TOOLS}
-#        rm -rf ${W3_REP_INP}/ice_forcing-${dateTs}.nc
-#        mv ${W3_REP_INP}/ice_forcing.nc ${W3_REP_INP}/ice_forcing-${dateTs}.nc
-#        ln -s ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
-#        bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${date4name} ${ts} ${w3listProg}
-#        ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTsp1_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc"
-#        mv ${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc
-#        mv ${W3_REP_WRK}/ww3.${dateTsp1_w3}.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc
-#        echo "Output are ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc"
-#      fi
-#   else
-#      #Make some verification here (if file is there).
-#      #bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP}
-#      echo "Hot start (not implemented yet)"
-#   fi
-####   python3 -c "import wimCouplerWW3 as couplerWW3; couplerWW3.exchangeVarWW3Cice('${nextTs}', '${W3_REP_OUT}' ,'${CI_REP_OUT}', '${date4name}')"
+   echo '|------------Run WW3-------------|'
+
+   if ${bool_coldStart}; then
+      if [ $i -eq 0 ]; then
+        if ${bool_Coupled}; then
+           bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${dt} ${exp} ${W3_REP_INP} ${WIM_REP_TOOLS}
+           rm -rf ${W3_REP_INP}/ice_forcing.nc; ln -s ${CI_REP_OUT}/history/iceh_ic.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
+           bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
+           ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTs_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTs}_efreq.nc" > /dev/null 2>&1
+           mv ${W3_REP_WRK}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
+           mv ${W3_REP_WRK}/ww3.${dateTs_w3}.nc ${W3_REP_OUT}/ww3.${dateTs}.nc
+           echo "Output are ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}.nc"
+        else
+           rm -rf ${W3_REP_INP}/ice_forcing.nc; ln -s ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
+           bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
+           mv ${W3_REP_WRK}/ww3.*.nc ${W3_REP_OUT}/
+        fi
+      else
+        w3listProg="ww3_prnc ww3_shel ww3_ounf"
+        bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP} ${WIM_REP_TOOLS}
+        rm -rf ${W3_REP_INP}/ice_forcing-${dateTs}.nc
+        mv ${W3_REP_INP}/ice_forcing.nc ${W3_REP_INP}/ice_forcing-${dateTs}.nc
+        ln -s ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
+        bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${date4name} ${ts} ${w3listProg}
+        ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTsp1_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc" > /dev/null 2>&1
+        mv ${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc
+        mv ${W3_REP_WRK}/ww3.${dateTsp1_w3}.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc
+        echo "Output are ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc"
+      fi
+   else
+      #Make some verification here (if file is there).
+      #bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP}
+      echo "Hot start (not implemented yet)"
+   fi
+###   python3 -c "import wimCouplerWW3 as couplerWW3; couplerWW3.exchangeVarWW3Cice('${nextTs}', '${W3_REP_OUT}' ,'${CI_REP_OUT}', '${date4name}')"
    ((i=i+1))
 done
-
-#Post-processing
-if ${bool_PP}; then
-   echo '|------------Post-Processing-------------|'
-   if ! $bool_Coupled; then
-      ndt=`cat ${W3_REP_INP}/ww3_ounf_${exp}.inp | sed -n -e 's/\$WimUpOunf//p' | rev | cut -c 1-2`
-   fi
-
-   if [ ! -e ${WIM_REP_PP}/${exp} ]; then 
-      mkdir ${WIM_REP_PP}/${exp}
-   fi
- 
-   ${WIM_REP_PP}/plotWaveIce.py ${ndt} ${dt} ${year_init} ${month_init} ${day_init} ${sec_init} ${W3_REP_OUT} ${CI_REP_OUT}/history ${WIM_REP_PP}/${exp} -g ${default_exp} -f ${dt} -c ${bool_Coupled}
-   ${WIM_REP_TOOLS}/wim_makeREADME.sh ${W3_REP_WRK} ${CI_REP_WRK} ${WIM_REP} ${WIM_REP_TOOLS} ${WIM_REP_PP} ${exp} ${year_init} ${month_init} ${day_init} ${sec_init} ${dtCoup} ${ndt} ${bool_coldStart}
-fi

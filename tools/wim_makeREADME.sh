@@ -55,7 +55,7 @@ cat ${CI_REP_WRK}/ice_in >> ${WIM_REP_PP}/${exp}/${exp}.README
 
 echo '|------------Update cases.README ! -------------|'
 
-header="Exp Start dtCoup ndt coldstart dtWW3 PRO SIC IC2VISC USECGICE IC4METHOD ICEDISP SIS IS2BACKSCAT IS2BREAK IS2CREEPB IS2ANDISB Init.Spec. dtCICE nx ny dx gridtype runtype bathymetry_file ncat nfsd ice_data_type ice_data_conc ice_data_dist atm_data_type ocn_data_type"
+header="Exp Start dtCoup ndt coldstart dtWW3 PRO SIC IC2VISC USECGICE IC4METHOD ICEDISP SIS IS2BACKSCAT IS2BREAK IS2CREEPB IS2ANDISB Init.Spec. dtCICE nx ny dx gridtype runtype ncat nfsd ice_data_type ice_data_conc ice_data_dist atm_data_type ocn_data_type"
 
 dtWW3=`cat ${W3_REP_WRK}/ww3_grid_${exp}.out | sed -n -e 's/Maximum global time step      (s) ://p'`
 PRO_WW3=`cat ${W3_REP_WRK}/ww3_grid_${exp}.out | sed -n -e '0,/PRO/{s/.*PRO//p}' | cut -c -1`
@@ -77,7 +77,7 @@ ny=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ny_global.*=//p'| cut -c -15`
 dx=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    dxrect.*=//p'| cut -c -15`
 gridtype=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    grid_type.*=//p'| cut -c -15`
 runtype=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    runtype.*=//p'| cut -c -15`
-bathy=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    bathymetry_file.*=//p'| cut -c -15`
+#bathy=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/   bathymetry_file.*=//p'| cut -c -15`
 ncat=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ncat.*=//p'| cut -c -15`
 nfsd=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    nfsd.*=//p'| cut -c -15`
 ice_type=`cat ${CI_REP_WRK}/ice_in | sed -n -e 's/    ice_data_type.*=//p'| cut -c -15`
@@ -153,7 +153,7 @@ if [ -z ${ny} ]; then
    ny='ND'
 fi
 
-params="${exp} ${year}-${month}-${day}-${sec} ${coupFreq} ${nts} ${coldstart} ${dtWW3} ${PRO_WW3} ${SIC_WW3} ${SICVISC} ${USECGICE} ${IC4METHOD} ${ICEDISP} ${SIS_WW3} ${SIS2BS} ${SIS2BREAK} ${SIS2CREEPB} ${SIS2ANDISB} ${spec} ${dtCICE} ${nx} ${ny} ${dx} ${gridtype} ${runtype} ${bathy} ${ncat} ${nfsd} ${ice_type} ${ice_conc} ${ice_dist} ${atm_type} ${ocn_type}" 
+params="${exp} ${year}-${month}-${day}-${sec} ${coupFreq} ${nts} ${coldstart} ${dtWW3} ${PRO_WW3} ${SIC_WW3} ${SICVISC} ${USECGICE} ${IC4METHOD} ${ICEDISP} ${SIS_WW3} ${SIS2BS} ${SIS2BREAK} ${SIS2CREEPB} ${SIS2ANDISB} ${spec} ${dtCICE} ${nx} ${ny} ${dx} ${gridtype} ${runtype} ND ${ncat} ${nfsd} ${ice_type} ${ice_conc} ${ice_dist} ${atm_type} ${ocn_type}" 
 
 if [ ! -e ${WIM_REP}/cases.README ]; then
    echo "Wave Ice Model (WAVEWATCH III and CICE)." > ${WIM_REP}/cases.README
