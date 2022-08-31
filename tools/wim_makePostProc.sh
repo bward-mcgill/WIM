@@ -7,7 +7,15 @@ W3_REP_OUT=${W3_REP_MOD}/out/${exp}
 CI_REP_OUT=${CI_REP_MOD}/out/${exp}
 WIM_REP_PP=${WIM_REP}/post-proc
 WIM_REP_TOOLS=${WIM_REP}/tools
-REP_CDO="/opt/cdo/bin/"
+
+if ${bool_CoupledWW3} && ${bool_CoupledCICE} ;then 
+   bool_Coupled=true
+elif ! ${bool_CoupledWW3} && ! ${bool_CoupledCICE} ;then
+   echo "You can't do uncoupled simulation of both CICE and WW3 at the same time"
+   exit 1
+else
+   bool_Coupled=false
+fi
 
 #Set default value, if output variables are undefined.
 if [ -z ${year_init_out} ];
@@ -30,14 +38,14 @@ then
     sec_init_out=${sec_init}
 fi
 
-if [ -z ${ndt_out} ];
+if [ -z ${ndtOutPP} ];
 then
-    ndt_out=${ndt}
+    ndtOutPP=${ndtCoup}
 fi
 
-if [ -z ${dt_out} ];
+if [ -z ${dtOutPP} ];
 then
-    dt_out=${dt}
+    dtOutPP=${dtCoup}
 fi
 
 #Change name of longitude and latitude variable (required for xarray):
@@ -55,11 +63,11 @@ fi
 
 
 echo '|------------Post-Processing-------------|'
+
 if [ ! -z ${ice_init} ] && [ ! -z ${rep_ice_init} ] && [ ${bool_Coupled} == "false" ] ;
 then
-    ${WIM_REP_TOOLS}/wim_plotWaveIce.py ${exp} ${ndt_out} ${dt} ${year_init_out} ${month_init_out} ${day_init_out} ${sec_init_out} ${W3_REP_OUT} ${CI_REP_OUT}/history ${WIM_REP_PP}/${exp} ${default_exp} ${dt_out} ${bool_Coupled} --iceIc ${ice_init} --repIceIc ${rep_ice_init}
+    ${WIM_REP_TOOLS}/wim_plotWaveIce.py ${exp} ${ndtOutPP} ${dtCICE} ${year_init_out} ${month_init_out} ${day_init_out} ${sec_init_out} ${W3_REP_OUT} "${CI_REP_OUT}/history" "${WIM_REP_PP}/${exp}" ${default_exp} ${dtOutPP} ${dtOutPP_u} ${bool_CoupledWW3} ${bool_CoupledCICE} --iceIc ${ice_init} --repIceIc ${rep_ice_init}
 else
-   ${WIM_REP_TOOLS}/wim_plotWaveIce.py ${exp} ${ndt_out} ${dt} ${year_init_out} ${month_init_out} ${day_init_out} ${sec_init_out} ${W3_REP_OUT} ${CI_REP_OUT}/history ${WIM_REP_PP}/${exp} ${default_exp} ${dt_out} ${bool_Coupled}
+   ${WIM_REP_TOOLS}/wim_plotWaveIce.py ${exp} ${ndtOutPP} ${dtCICE} ${year_init_out} ${month_init_out} ${day_init_out} ${sec_init_out} ${W3_REP_OUT} "${CI_REP_OUT}/history" "${WIM_REP_PP}/${exp}" ${default_exp} ${dtOutPP} ${dtOutPP_u} ${bool_CoupledWW3} ${bool_CoupledCICE}
 fi
-
 

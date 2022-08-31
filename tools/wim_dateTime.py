@@ -26,13 +26,22 @@ def printTsModel(yyyy, mm, dd, sssss, model):
    elif model == 'WW3':
       print(str(dayTs.year).zfill(4)+str(dayTs.month).zfill(2)+str(dayTs.day).zfill(2)+'-'+str(dayTs.hour).zfill(2)+str(dayTs.minute).zfill(2)+str(dayTs.second).zfill(2))
 
-def createListDateTime(init_dateTime, ts, nts):
+def createListDateTime(init_dateTime, ts, ts_u, nts):
    list_ts=[]
    start_day=init_dateTime
-   start_sec=init_dateTime.second
+   from dateutil.relativedelta import relativedelta
+
    for i in range(nts):
-      new_day=start_day+timedelta(seconds=start_sec+i*ts)
-#      list_ts.append(str(new_day.year).zfill(4)+str(new_day.month).zfill(2)+str(new_day.day).zfill(2)+str(new_day.hour*3600).zfill(5))
+      if ts_u == 's':
+          new_day=start_day+timedelta(seconds=i*ts)
+      elif ts_u == 'h':
+          new_day=start_day+timedelta(hours=i*ts)
+      elif ts_u == 'd':
+          new_day=start_day+timedelta(days=i*ts)
+      elif ts_u == 'm':
+          new_day=start_day+relativedelta(months=i*ts)
+      elif ts_u == 'y':
+          new_day=start_day+relativedelta(years=i*ts)
       list_ts.append(new_day)
    return list_ts
 

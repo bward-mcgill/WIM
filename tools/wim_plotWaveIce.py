@@ -10,9 +10,11 @@ from datetime import datetime, timedelta
 #import glob
 #import xarray as xr
 import argparse
+import subprocess
 import warnings
 import netCDF4 as nc
 import numpy.ma as ma
+import os
 
 def plotWaveIceRegrid(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon, repOUT, case, datestr, plot_type, list_var):
 
@@ -185,16 +187,18 @@ def plotWaveIceGx3(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon,
     for var in list_var:
        #Read ice field and wave field.
        data=read_data(REP_IN_CICE, [fileCI], var, nlon, nlat)
-       dataW3=read_data(REP_IN_W3, [fileW3], 'hs', nlon, nlat)
+       
+       if fileW3 != "none":
+           dataW3=read_data(REP_IN_W3, [fileW3], 'hs', nlon, nlat)
 
        plt.sca(axes[i])
 
        #Choose projection
-       m = Basemap(projection='merc',llcrnrlat=-80,urcrnrlat=80, llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='c')
+#       m = Basemap(projection='merc',llcrnrlat=-80,urcrnrlat=80, llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='c')
 #       m = Basemap(projection='spstere', boundinglat=-45,lon_0=270, resolution='l')
 #       m = Basemap(width=12000000,height=8000000,resolution='l',projection='stere',lat_0=90,lon_0=270)
 #       m = Basemap(projection='ortho',lon_0=270,lat_0=40,resolution='l')
-#       m = Basemap(projection='npstere', boundinglat=35,lon_0=270, resolution='l')
+       m = Basemap(projection='npstere', boundinglat=35,lon_0=270, resolution='l')
        m.drawcoastlines()
 
        if plot_type == 'scatter':
@@ -212,58 +216,57 @@ def plotWaveIceGx3(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon,
 
            #No need for reordering the datas, just create empty arrays.
            d = np.zeros((data.shape[0],data.shape[1]+1))
-           dW3 = np.zeros((dataW3.shape[0],dataW3.shape[1]+1))
            lon_cyc = np.zeros((lon.shape[0],lon.shape[1]+1))
            mask = np.zeros((data.shape[0],data.shape[1]+1))
-           maskhs=np.zeros((data.shape[0],data.shape[1]+1))
-           lat_cyc = np.zeros((lat.shape[0],lat.shape[1]+1))
-       
+           lat_cyc = np.zeros((lat.shape[0],lat.shape[1]+1))       
            #Simply fill the arrays
            mask[:,0:-1] = data.mask[:,:]
            mask[:,-1] = data.mask[:,0]
-           maskhs[:,0:-1] = dataW3.mask[:,:]
-           maskhs[:,-1] = dataW3.mask[:,0]
            lon_cyc[:,0:-1] = lon[:,:]; lon_cyc[:,-1] = lon[:,0]
            lat_cyc[:,0:-1] = lat[:,:]; lat_cyc[:,-1] = lat[:,0]
            d[:,0:-1] = data[:,:]
            d[:,-1] = data[:,0]
-           dW3[:,0:-1] = dataW3[:,:]
-           dW3[:,-1] = dataW3[:,0]
-
-#           lon1 = np.ma.masked_array(lon_cyc, mask=mask)
-#           lat1 = np.ma.masked_array(lat_cyc, mask=mask)
+           # Apply mask to ice field
            d1 = np.ma.masked_array(d,mask=mask)
-           d1hs=np.ma.masked_array(dW3,mask=maskhs)
-#           d1Uwind=np.ma.masked_array(d,mask=maskUwind)
-#           d1Vwind=np.ma.masked_array(d,mask=maskVwind)
 
-#           d1W3 = np.ma.masked_array(dW3,mask=maskW3)
+           #Idem with waves
+           if fileW3 != "none":
+               dW3 = np.zeros((dataW3.shape[0],dataW3.shape[1]+1))
+               maskhs=np.zeros((data.shape[0],data.shape[1]+1))
+               maskhs[:,0:-1] = dataW3.mask[:,:]
+               maskhs[:,-1] = dataW3.mask[:,0]
+               dW3[:,0:-1] = dataW3[:,:]
+               dW3[:,-1] = dataW3[:,0]
+               d1hs=np.ma.masked_array(dW3,mask=maskhs)
 
            x, y = m(lon_cyc, lat_cyc)
-#           xwind,ywind=m(lonwind, latwind)
-       
+
            if plot_type == 'contour':
                #Plot ice fields
                sc = m.contourf(x, y, d1, cmap=reversed_map)
                #Plot contours
-               cont=axes[i].contour(x,y, d1hs, colors='black') #, levels=[0.02, 0.04, 0.06, 0.1, 0.14, 0.2])
+               if fileW3 != "none":
+                   cont=axes[i].contour(x,y, d1hs, colors='black') #, levels=[0.02, 0.04, 0.06, 0.1, 0.14, 0.2])
+                   if(len(cont.allsegs) != 1):
+                       axes[i].clabel(cont, fontsize= 12)
                # Rotate and interpolate to have a nice wind field in the projection.
                uproj, vproj, xwind, ywind = create_wind_projection(REP_IN_W3, fileW3, REP_IN_CICE, fileCI, m, wnd_var,nlon,nlat)
                # Plot winds
                Q = m.quiver(xwind, ywind,uproj,vproj,scale=250)
            else:  # pcolor
                sc = m.pcolor(x, y, d1, cmap=reversed_map)
-               cont=axes[i].contour(x,y, d1hs, colors='black') #, levels=[0.02, 0.04, 0.06, 0.1, 0.14, 0.2])
-               uproj, vproj, xwind, ywind = create_wind_projection(REP_IN_W3, fileW3, REP_IN_CICE, fileCI,  m, wnd_var, nlon, nlat)
- #              print(uproj)
-               axes[i].barbs(xwind, ywind, uproj, vproj, length=4, pivot='middle')
-#                m.quiver(xwind, ywind,uwind,vwind,scale=250)
+               if fileW3 != "none":
+                   cont=axes[i].contour(x,y, d1hs, colors='black') #, levels=[0.02, 0.04, 0.06, 0.1, 0.14, 0.2])
+                   if(len(cont.allsegs) != 1):
+                       axes[i].clabel(cont, fontsize= 12)
+    #               uproj, vproj, xwind, ywind = create_wind_projection(REP_IN_W3, fileW3, REP_IN_CICE, fileCI,  m, wnd_var, nlon, nlat)
+    #               axes[i].barbs(xwind, ywind, uproj, vproj, length=4, pivot='middle')
 
        m.drawparallels(np.arange(-90.,120.,15.),labels=[1,0,0,0], size=16) # draw parallels
        m.drawmeridians(np.arange(0.,420.,30.),labels=[1,1,1,1], size=16) # draw meridians
        cb=fig.colorbar(sc, ax=axes[i])
        cb.ax.tick_params(labelsize=18)
-#       axes[i].clabel(cont, fontsize= 12)
+
        if var == 'ice' or var == 'aice':
           cb.set_label('Ice Concentration', size=20)
        elif var == 'ic1' or var == 'hi':
@@ -286,7 +289,6 @@ def create_wind_projection(path_a, file_a, path_g, file_g, basem, wind_var, nlon
     '''
     import pandas as pd
     import xarray as xr
-    import os
     #Read file uwnd and vwnd (pourrait etre remplacer par un readata).
     file_data=path_a+"/"+file_a
     name=file_a[:-3]
@@ -444,9 +446,9 @@ def get_geomCICE(path, file):
     ni = fid.dimensions['ni'].size
     nj = fid.dimensions['nj'].size
 
-    return ni, nj, tlat, tlon
+    return nj, ni, tlat, tlon
 
-def get_geom_WW3(path, file):
+def get_geomWW3(path, file):
     '''
     This function reads the ni, nj, tlat, and tlon variables from a netcdf file
     '''
@@ -484,8 +486,8 @@ def plotWaveIceIdeal(fileCICE, fileWW3, repW3, repCI, repOUT, exp, datestr, xG, 
             var_2d=np.nan_to_num(dsW3[[v]][v].values.squeeze())
         else:
             var_2d=np.nan_to_num(dsCI[[v]][v].values.squeeze())
-        u_wind=np.nan_to_num(dsW3[['uwnd']]['uwnd'].values.squeeze())
-        v_wind=np.nan_to_num(dsW3[['vwnd']]['vwnd'].values.squeeze())
+#        u_wind=np.nan_to_num(dsW3[['uwnd']]['uwnd'].values.squeeze())
+#        v_wind=np.nan_to_num(dsW3[['vwnd']]['vwnd'].values.squeeze())
         ax[i].set_xlim([2.5, 240])
         ax[i].set_ylim([2.5, 240])
         ax[i].tick_params(labelsize=14)
@@ -525,7 +527,9 @@ def main():
     parser.add_argument("rep_out", help="Path to store plot.")
     parser.add_argument("grid", help="Specify grid (default wim2p5)")
     parser.add_argument("outfreq", help="Specify output frequency (default same as dt)", type=int)
-    parser.add_argument("coupled", help="Specify if the run is coupled or not")
+    parser.add_argument("outfreqU", help="Specify output frequency unit")
+    parser.add_argument("coupledWW3", help="Specify if the run is coupled or not (WW3)")
+    parser.add_argument("coupledCICE", help="Specify if the run is coupled or not (CICE)")
     parser.add_argument("--iceIc", help="Specify the name of a netCDF file that contains the initial condition of the ice (will only work for uncoupled simulation).")
     parser.add_argument("--repIceIc", help="Specify the path of netCDF file that contains the initial condition of the ice (will only work for uncoupled simulation).")
     args = parser.parse_args()
@@ -533,19 +537,19 @@ def main():
     #Define variables
     grid=args.grid
     outfreq=args.outfreq
+    outfreqU=args.outfreqU
     timeStep=args.dt
-    coupled=args.coupled
+    coupledWW3=args.coupledWW3
+    coupledCICE=args.coupledCICE
     nb_ts=args.nts
-    
+
+    if coupledWW3 == "true"  and coupledCICE == "true":
+        coupled="true"
+    else:
+        coupled="false"
 
     #list_var=['aice_ww', 'hice_ww', 'diam_ww'] #,'ic1','ic5'] #Ice concentration, Ice thickness, Mean floe size diameter
-    if coupled == "true":
-       list_var=['aice', 'hi', 'fsdrad']
-    elif coupled == "false":
-       list_var=['aice', 'hi', 'ic5']
 
-    #Temporary hardcode :
-#    list_var=['aice', 'hi', 'fsdrad']
     list_var=['aice', 'hi', 'fsdrad']
     #list_var=['ice', 'ice', 'ice']
 
@@ -554,7 +558,7 @@ def main():
     start_m=args.start_m
     start_s=args.start_s    
     start_day=datetime(start_y, start_m, start_d)+timedelta(seconds=start_s)
-    list_ts=createListDateTime(start_day, outfreq, nb_ts)
+    list_ts=createListDateTime(start_day, outfreq, outfreqU, nb_ts)
     REP_IN_W3=args.rep_inW3
     REP_IN_CICE=args.rep_inCI
     REP_OUT=args.rep_out
@@ -569,42 +573,85 @@ def main():
     elif grid == 'wimgx3':
         datetimeStart=start_day
         if coupled == "true":
-            datestrStart=str(datetimeStart.year).zfill(4)+"-"+str(datetimeStart.month).zfill(2)+"-"+str(datetimeStart.day).zfill(2)+"-"+str(datetimeStart.hour*3600).zfill(5)
             file_strt="ww3."+datestrStart+".nc"
             rep_strt=REP_IN_W3
-        elif coupled == "false":
+            nlon, nlat, t_lat, t_lon = get_geomWW3(rep_strt, file_strt)
+        elif coupledWW3 == "false":
             datestrStart=str(datetimeStart.year).zfill(4)+str(datetimeStart.month).zfill(2)+str(datetimeStart.day).zfill(2)+"T"+str(datetimeStart.hour).zfill(2)+"Z"
-
             if (args.iceIc is None or args.repIceIc is None):
                 file_strt="ww3."+datestrStart+".nc"
                 rep_strt=REP_IN_W3
             else:
                 file_strt=args.iceIc
                 rep_strt=args.repIceIce
-
-        nlon, nlat, t_lat, t_lon = get_geom_WW3(rep_strt, file_strt)
+            nlon, nlat, t_lat, t_lon = get_geomWW3(rep_strt, file_strt)
+        elif coupledCICE == "false":
+            #Take any file in the CICE out directory. 
+#            datetimeStrtCI=datetimeStart+timedelta(seconds=timeStep)
+#            datestrStart=str(datetimeStart.year).zfill(4)+"-"+str(datetimeStart.month).zfill(2)+"-"+str(datetimeStart.day).zfill(2)+"-"+str(datetimeStart.hour*3600).zfill(5)
+#            datestrStrtCI=str(datetimeStrtCI.year).zfill(4)+"-"+str(datetimeStrtCI.month).zfill(2)+"-"+str(datetimeStrtCI.day).zfill(2)+"-"+str(datetimeStrtCI.hour*3600).zfill(5)
+#            file_strt="iceh_01h."+datestrStrtCI+".nc"
+            rep_strt=REP_IN_CICE
+            cmd_list="ls "+rep_strt+"/"+"| tail -n 1"
+            file_strt = str(subprocess.check_output(cmd_list, shell=True).rstrip())[2:-1]
+            nlon, nlat, t_lat, t_lon=get_geomCICE(rep_strt, file_strt)
 
     i=1
     #Plot at each timestep
     for ts in list_ts:
         datetimeW3=ts
-        print("Time step "+str(i)+":",datetimeW3)
         if coupled == "true":
+            # Keep it like this for now.
+            print("Coupled")
+            print("Time step "+str(i)+":",datetimeW3)
             datetimeCI=ts+timedelta(seconds=timeStep)
             datestrW3=str(datetimeW3.year).zfill(4)+"-"+str(datetimeW3.month).zfill(2)+"-"+str(datetimeW3.day).zfill(2)+"-"+str(datetimeW3.hour*3600).zfill(5)
-        elif coupled == "false":
-            #If not coupled : ice always initial ice field.
+            datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)+"-"+str(datetimeCI.hour*3600).zfill(5)
+            fileCI="iceh_01h."+datestrCI+".nc"
+            fileW3="ww3."+datestrW3+".nc"
+            print("CICE file : "+fileCI, "WW3 file : "+fileW3)
+        elif coupledWW3 == "false":
+            print("Uncoupled WW3 simulation")
+            print("Time step "+str(i)+":",datetimeW3)
+            #If only WW3 simulation : ice always initial ice field.
             datetimeCI=start_day+timedelta(seconds=timeStep)
             datestrW3=str(datetimeW3.year).zfill(4)+str(datetimeW3.month).zfill(2)+str(datetimeW3.day).zfill(2)+"T"+str(datetimeW3.hour).zfill(2)+"Z"
-
-        datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)+"-"+str(datetimeCI.hour*3600).zfill(5)
-
-        fileCI="iceh_01h."+datestrCI+".nc"
-        fileW3="ww3."+datestrW3+".nc"
+            fileCI="ice_forcing.nc"
+            REP_IN_CICE="/aos/home/bward/wim/ww3/model/inp/"+exp #Temporary hardcode
+            fileW3="ww3."+datestrW3+".nc"
+            print("CICE file : "+fileCI, "WW3 file : "+fileW3)
+        elif coupledCICE == "false":
+            #If not coupled : no wave field
+            if outfreqU == 's':
+                datetimeCI=ts+timedelta(seconds=timeStep)
+                datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)+"-"+str(datetimeCI.hour*3600).zfill(5)
+                fileCI="iceh_01h."+datestrCI+".nc"
+            elif outfreqU == 'h':
+                datetimeCI=ts+timedelta(seconds=timeStep)
+                datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)+"-"+str(datetimeCI.hour*3600).zfill(5)
+                fileCI="iceh_01h."+datestrCI+".nc"
+            elif outfreqU == 'd':
+                datetimeCI=ts
+                datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)
+                fileCI="iceh."+datestrCI+".nc"
+            elif outfreqU == 'm':
+                datetimeCI=ts
+                datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)
+                fileCI="iceh."+datestrCI+".nc"
+            elif outfreqU == 'y':
+                datetimeCI=ts
+                datestrCI=str(datetimeCI.year).zfill(4)
+                fileCI="iceh."+datestrCI+".nc"
+            fileW3="none"
+            datestrW3=datestrCI
+            print("Uncoupled CICE simulation")
+            print("Time step "+str(i)+":",datetimeCI)
+            print("CICE file : "+fileCI, "WW3 file : "+fileW3)
 
         if grid == 'wim2p5':
             plotWaveIceIdeal(fileCI, fileW3, REP_IN_W3, REP_IN_CICE, REP_OUT, exp, datestrW3, xgrid, ygrid, list_var)
         elif grid == 'wimgx3':
+            # Special case of regrided scenario (might delete).
             if len(t_lat.shape) == 1:
                plotWaveIceRegrid(rep_strt, file_strt, REP_IN_W3, fileW3, nlon, nlat, t_lat, t_lon, REP_OUT, exp, datestrW3, 'pcolor', list_var)
             elif len(t_lat.shape) == 2:

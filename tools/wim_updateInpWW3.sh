@@ -6,8 +6,9 @@ day_new=${3}
 sec_ini_new=${4}
 dt=${5} 
 exp=${6}
-W3_REP_INP=${7}
-WIM_REP_TOOLS=${8}
+bool_Coupled=${7}
+W3_REP_INP=${8}
+WIM_REP_TOOLS=${9}
 
 ((sec_end_new=sec_ini_new+dt))
 ((sec_rst_new=sec_ini_new+dt+dt))
@@ -40,3 +41,8 @@ echo "IC2 option has been updated to 'IC2' ${w3_start_new} 1.83e-6 in ${W3_REP_I
 
 sed -i "s/ .*WimUpOunf/   ${w3_start_new} ${dt} 1 \$WimUpOunf/" ${W3_REP_INP}/ww3_ounf_${exp}.inp
 echo "Output option has been updated to ${w3_start_new} ${dt} 1 in ${W3_REP_INP}/ww3_ounf_${exp}.inp"
+
+if ! ${bool_Coupled}; then
+    sed -i "s/ .*WimOutCoupled/   10 \$WimOutCoupled/" ${W3_REP_INP}/ww3_ounf_${exp}.inp
+    echo "Uncoupled simulation, output files have a 10 character format."
+fi

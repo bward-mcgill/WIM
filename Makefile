@@ -15,7 +15,7 @@ run: case wim_launch README post_proc
 case: ${WIM_REP}/wim_launcher.cfg
 	@${WIM_REP_TOOLS}/wim_makeCase.sh
 
-wim_launch: case
+wim_launch:
 	@${WIM_REP}/wim_launcher.sh
 
 README: 

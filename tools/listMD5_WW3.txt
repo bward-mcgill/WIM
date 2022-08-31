@@ -128,7 +128,7 @@ fc1bf2b0494116bc6829bbf6283cdb59  /aos/home/bward/wim/ww3/model/ftn/ww3_multi.ft
 d1ccedbd3f9a659e3bfb15f395b05a86  /aos/home/bward/wim/ww3/model/ftn/ww3_outf.ftn
 5c298004ccfaedd59759125834a717db  /aos/home/bward/wim/ww3/model/ftn/ww3_outp.ftn
 e07d6c8d2e11090baa8096fe737c9374  /aos/home/bward/wim/ww3/model/ftn/ww3_prep.ftn
-cdf622436ae87fa6de7952b512607b27  /aos/home/bward/wim/ww3/model/ftn/ww3_prnc.ftn
+7a6fb786704d155b9ee398e85b1d97ef  /aos/home/bward/wim/ww3/model/ftn/ww3_prnc.ftn
 ea402a1556da8620bbdc9c9591fcf2c4  /aos/home/bward/wim/ww3/model/ftn/ww3_prtide.ftn
 4a38e50fa8b0e7d6f7ca4b3676ef01b7  /aos/home/bward/wim/ww3/model/ftn/ww3_sbs1.ftn
 8288900cc735eea74084a1f5a5d01984  /aos/home/bward/wim/ww3/model/ftn/ww3_shel.ftn
