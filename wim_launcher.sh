@@ -38,6 +38,7 @@ if ${bool_CoupledWW3} && ${bool_CoupledCICE} ;then
    dtCICEOut=1
    dtCICEOut_u=h
    ndtCICE_u=1
+   echo "Coupled simulation."
 elif ! ${bool_CoupledWW3} && ! ${bool_CoupledCICE} ;then
    echo "Error, you can't do an uncoupled simulation of both WW3 and CICE at the same time"
    exit 1
@@ -48,10 +49,13 @@ else
       exit 1 
    fi
    if ! ${bool_CoupledWW3}; then
+         echo "Uncoupled WW3 simulation."
          ndtCICE=1
          ndtCICE_u=1
          dtCICEOut=1
          dtCICEOut_u=h
+   else
+       echo "Uncoupled CICE simulation".
    fi
 fi
 
@@ -111,11 +115,11 @@ do
    echo '|------------Run CICE-------------|'
 
    if ${bool_coldStart}; then
-      echo "Cold start !"
       # In the case of a cold start, timestep 0 : create a wave field and initiate FSD from internal.
       if [ $i -eq 0 ]; then
+        echo "Cold start !"
         #Initiate FSD.
-        ice_ic='none'
+        ice_ic=${ice_ic_initFSD}
         wave_spec_file='unknown_wave_spec_file'
         wave_spec_type="none"
         CST_NDT=1
@@ -123,19 +127,18 @@ do
         CST_NDT_U=1
         bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CST_NDT} ${CST_NDT_U} ${CST_FREQ} ${CI_REP_WRK}
         ./cice.submit
-#        rm -f ${CI_REP_RST}/iced.fsd.nc ; ${REP_CDO}/cdo select,name=fsd001,fsd002,fsd003,fsd004,fsd005,fsd006,fsd007,fsd008,fsd009,fsd010,fsd011,fsd012 ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.fsd.nc > /dev/null 2>&1
-#        rm -f ${CI_REP_RST}/iced.${dateTs}.nc ; ${REP_CDO}/cdo merge ${CI_REP_RST}/iced.fsd.nc ${CI_REP_INP}/ic/gx3/iced_gx3_v5.nc ${CI_REP_RST}/iced.${dateTs}.nc > /dev/null 2>&1
-#        rm -f ${CI_REP_RST}/iced.${dateTsp1}.nc
-
         if [ ${default_exp} == "wimgx3" ]; then
            # If global grid, need to copy fsd variables into restart file.
-           rm -f ${CI_REP_RST}/iced.fsd.nc ; ${REP_CDO}/cdo select,name=fsd001,fsd002,fsd003,fsd004,fsd005,fsd006,fsd007,fsd008,fsd009,fsd010,fsd011,fsd012 ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.fsd.nc > /dev/null 2>&1
-           rm -f ${CI_REP_RST}/iced.${dateTs}.nc ; ${REP_CDO}/cdo merge ${CI_REP_RST}/iced.fsd.nc ${CI_REP_INP}/ic/gx3/iced_gx3_v5.nc ${CI_REP_RST}/iced.${dateTs}.nc > /dev/null 2>&1
-           rm -f ${CI_REP_RST}/iced.${dateTsp1}.nc
+#           rm -f ${CI_REP_RST}/iced.fsd.nc ; ${REP_CDO}/cdo select,name=fsd001,fsd002,fsd003,fsd004,fsd005,fsd006,fsd007,fsd008,fsd009,fsd010,fsd011,fsd012 ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.fsd.nc > /dev/null 2>&1
+#           rm -f ${CI_REP_RST}/iced.${dateTs}.nc ; ${REP_CDO}/cdo merge ${CI_REP_RST}/iced.fsd.nc ${CI_REP_INP}/ic/gx3/iced_gx3_v5.nc ${CI_REP_RST}/iced.${dateTs}.nc > /dev/null 2>&1
+#           rm -f ${CI_REP_RST}/iced.${dateTsp1}.nc
+
+            mv ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.${dateTs}.nc
+
            if ! ${bool_CoupledCICE}; then
                # If we want to launch an uncoupled simulation of CICE (change ndt)
                #ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
-               ice_ic='none'
+               ice_ic=${ice_ic_initFSD}
                wave_spec_file='unknown_wave_spec_file'
                wave_spec_type="none"
                bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
@@ -196,6 +199,8 @@ do
            bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
            ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTs_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTs}_efreq.nc" > /dev/null 2>&1
            mv ${W3_REP_WRK}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc ;mv ${W3_REP_WRK}/ww3.${dateTs_w3}.nc ${W3_REP_OUT}/ww3.${dateTs}.nc
+#           ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.${dateTs}.nc" ${W3_REP_OUT} "ww3.${dateTs}_efreq.nc"
+
         else # We want to run an uncoupled simulation with only WW3.
            rm -rf ${W3_REP_INP}/ice_forcing.nc; ln -s ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
            bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
@@ -210,6 +215,7 @@ do
         bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${date4name} ${ts} ${w3listProg}
         ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTsp1_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc" > /dev/null 2>&1
         mv ${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc ; mv ${W3_REP_WRK}/ww3.${dateTsp1_w3}.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc
+#        ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.${dateTs}.nc" ${W3_REP_OUT} "ww3.${dateTsp1}_efreq.nc"
         #echo "Output are ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc"
       fi
    else
@@ -218,9 +224,6 @@ do
       echo "Hot start (not implemented yet)"
    fi
 
-   if ${bool_CoupledWW3}; then
-       ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.${dateTs}.nc" ${CI_REP_RST} "iced.${dateTs}.nc"
-   fi
 
    ((i=i+1))
 done

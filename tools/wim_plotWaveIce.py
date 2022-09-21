@@ -573,6 +573,7 @@ def main():
     elif grid == 'wimgx3':
         datetimeStart=start_day
         if coupled == "true":
+            datestrStart=str(datetimeStart.year).zfill(4)+"-"+str(datetimeStart.month).zfill(2)+"-"+str(datetimeStart.day).zfill(2)+"-"+str(datetimeStart.hour*3600).zfill(5)
             file_strt="ww3."+datestrStart+".nc"
             rep_strt=REP_IN_W3
             nlon, nlat, t_lat, t_lon = get_geomWW3(rep_strt, file_strt)

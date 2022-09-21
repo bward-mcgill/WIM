@@ -45,4 +45,7 @@ echo "Output option has been updated to ${w3_start_new} ${dt} 1 in ${W3_REP_INP}
 if ! ${bool_Coupled}; then
     sed -i "s/ .*WimOutCoupled/   10 \$WimOutCoupled/" ${W3_REP_INP}/ww3_ounf_${exp}.inp
     echo "Uncoupled simulation, output files have a 10 character format."
+else
+    sed -i "s/ .*WimOutCoupled/   8 \$WimOutCoupled/" ${W3_REP_INP}/ww3_ounf_${exp}.inp
+    echo "Uncoupled simulation, output files have a 8 character format."
 fi
