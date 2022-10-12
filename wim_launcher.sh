@@ -118,41 +118,45 @@ do
       # In the case of a cold start, timestep 0 : create a wave field and initiate FSD from internal.
       if [ $i -eq 0 ]; then
         echo "Cold start !"
-        #Initiate FSD.
-        ice_ic=${ice_ic_initFSD}
-        wave_spec_file='unknown_wave_spec_file'
-        wave_spec_type="none"
-        CST_NDT=1
-        CST_FREQ='h'
-        CST_NDT_U=1
-        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${CST_NDT} ${CST_NDT_U} ${CST_FREQ} ${CI_REP_WRK}
-        ./cice.submit
+
+        if ${tr_fsd}; then
+            #Initiate FSD.
+            ice_ic=${ice_ic_initFSD}
+            wave_spec_file='unknown_wave_spec_file'
+            wave_spec_type="none"
+            CST_NDT=1
+            CST_FREQ='h'
+            CST_NDT_U=1
+            bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${tr_fsd} ${CST_NDT} ${CST_NDT_U} ${CST_FREQ} ${CI_REP_WRK}
+            ./cice.submit
+        fi
+
         if [ ${default_exp} == "wimgx3" ]; then
-           # If global grid, need to copy fsd variables into restart file.
-#           rm -f ${CI_REP_RST}/iced.fsd.nc ; ${REP_CDO}/cdo select,name=fsd001,fsd002,fsd003,fsd004,fsd005,fsd006,fsd007,fsd008,fsd009,fsd010,fsd011,fsd012 ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.fsd.nc > /dev/null 2>&1
-#           rm -f ${CI_REP_RST}/iced.${dateTs}.nc ; ${REP_CDO}/cdo merge ${CI_REP_RST}/iced.fsd.nc ${CI_REP_INP}/ic/gx3/iced_gx3_v5.nc ${CI_REP_RST}/iced.${dateTs}.nc > /dev/null 2>&1
-#           rm -f ${CI_REP_RST}/iced.${dateTsp1}.nc
-
-            mv ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.${dateTs}.nc
-
-           if ! ${bool_CoupledCICE}; then
+           rm -f ${CI_REP_RST}/iced.fsd.nc ; ${REP_CDO}/cdo select,name=fsd001,fsd002,fsd003,fsd004,fsd005,fsd006,fsd007,fsd008,fsd009,fsd010,fsd011,fsd012 ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.fsd.nc > /dev/null 2>&1
+           rm -f ${CI_REP_RST}/iced.${dateTs}_fsd.nc ; ${REP_CDO}/cdo merge ${CI_REP_RST}/iced.fsd.nc ${CI_REP_RST}/iced.${dateTs}.nc ${CI_REP_RST}/iced.${dateTs}_fsd.nc> /dev/null 2>&1 ; rm -f ${CI_REP_RST}/iced.${dateTsp1}.nc
+          if ! ${bool_CoupledCICE}; then
                # If we want to launch an uncoupled simulation of CICE (change ndt)
                #ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
                ice_ic=${ice_ic_initFSD}
                wave_spec_file='unknown_wave_spec_file'
                wave_spec_type="none"
-               bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
+               tr_fsd="false"
+               bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${tr_fsd} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
                ./cice.submit
-               ${REP_CDO}/cdo aexpr,"fsdrad=fsdrad*2"  ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad > /dev/null 2>&1
-               cp ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ; rm -f ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad
+
+               if ${tr_fsd} ; then
+                    ${REP_CDO}/cdo aexpr,"fsdrad=fsdrad*2"  ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad > /dev/null 2>&1
+                    cp ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ; rm -f ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad
+               fi
+
                echo "Uncoupled CICE simulation done, exit loop."
                break # We want to run an uncoupled simulation, we don't event want to run WW3.
            else
                #If we want to launch a coupled simulation (keep ndt to 1).
-               ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
+               ice_ic=${CI_REP_RST}/iced.${dateTs}_fsd.nc
                wave_spec_file='unknown_wave_spec_file'
                wave_spec_type="none"
-               bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
+               bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${tr_fsd} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
                ./cice.submit
            fi
         fi
@@ -168,20 +172,19 @@ do
             wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
             wave_spec_type="random"
         fi
-        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
+        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${tr_fsd} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
         ./cice.submit
      else
         ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
         wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
         wave_spec_type="random"
 
-        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
+        bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${tr_fsd} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
         ./cice.submit
       fi
       #Always double fsdrad to get mean floe diameter.
       ${REP_CDO}/cdo aexpr,"fsdrad=fsdrad*2"  ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad > /dev/null 2>&1
       cp ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ; rm -f ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad
-
    else
       #Make some verification here.
       echo "Hot Start (not implemented yet)."
@@ -197,10 +200,11 @@ do
            bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${dtCoup} ${exp} ${bool_Coupled} ${W3_REP_INP} ${WIM_REP_TOOLS}
            rm -rf ${W3_REP_INP}/ice_forcing.nc; ln -s ${CI_REP_OUT}/history/iceh_ic.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
            bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
-           ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTs_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTs}_efreq.nc" > /dev/null 2>&1
-           mv ${W3_REP_WRK}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc ;mv ${W3_REP_WRK}/ww3.${dateTs_w3}.nc ${W3_REP_OUT}/ww3.${dateTs}.nc
-#           ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.${dateTs}.nc" ${W3_REP_OUT} "ww3.${dateTs}_efreq.nc"
-
+           ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTs_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTs}_efreq.nc" > /dev/null 2>&1 ; rm -f ${W3_REP_WRK}/ww3.${dateTs_w3}_ef.nc
+           mv ${W3_REP_WRK}/ww3.${dateTs}_efreq.nc ${W3_REP_OUT}/ww3.${dateTs}_efreq.nc ; mv ${W3_REP_WRK}/ww3.${dateTs_w3}.nc ${W3_REP_OUT}/ww3.${dateTs}.nc
+#           ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} "/aos/home/bward/wim/ww3/model/out/case10" "ww3.2005-01-01-07200.nc" ${W3_REP_OUT} "ww3.${dateTs}_efreq.nc"
+           ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.${dateTs}.nc" ${W3_REP_OUT} "ww3.${dateTs}_efreq.nc" ${default_exp}
+#           ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.2005-01-01-07200.nc" ${W3_REP_OUT} "ww3.${dateTs}_efreq.nc"
         else # We want to run an uncoupled simulation with only WW3.
            rm -rf ${W3_REP_INP}/ice_forcing.nc; ln -s ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
            bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${dateTs} ${w3listProg}
@@ -213,17 +217,18 @@ do
         bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dtCoup} ${exp} ${bool_Coupled} ${W3_REP_INP} ${WIM_REP_TOOLS}
         rm -rf ${W3_REP_INP}/ice_forcing-${dateTs}.nc; mv ${W3_REP_INP}/ice_forcing.nc ${W3_REP_INP}/ice_forcing-${dateTs}.nc; ln -s ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${W3_REP_INP}/ice_forcing.nc
         bash ${WIM_REP_TOOLS}/wim_runww3.sh ${W3_REP_MOD} ${exp} ${date4name} ${ts} ${w3listProg}
-        ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTsp1_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc" > /dev/null 2>&1
+        ${REP_CDO}/cdo chname,ef,efreq "${W3_REP_WRK}/ww3.${dateTsp1_w3}_ef.nc" "${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc" > /dev/null 2>&1 ; rm -f ${W3_REP_WRK}/ww3.${dateTsp1_w3}_ef.nc
         mv ${W3_REP_WRK}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc ; mv ${W3_REP_WRK}/ww3.${dateTsp1_w3}.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc
-#        ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.${dateTs}.nc" ${W3_REP_OUT} "ww3.${dateTsp1}_efreq.nc"
-        #echo "Output are ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc"
+#        ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} "/aos/home/bward/wim/ww3/model/out/case10" "ww3.2005-01-01-07200.nc" ${W3_REP_OUT} "ww3.${dateTsp1}_efreq.nc"
+        ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.${dateTsp1}.nc" ${W3_REP_OUT} "ww3.${dateTsp1}_efreq.nc" ${default_exp}
+#        ${WIM_REP_TOOLS}/wim_updateIced.py ${exp} ${W3_REP_OUT} "ww3.2005-01-01-07200.nc" ${W3_REP_OUT} "ww3.${dateTsp1}_efreq.nc"
+
+        echo "Output are ${W3_REP_OUT}/ww3.${dateTsp1}_efreq.nc ${W3_REP_OUT}/ww3.${dateTsp1}.nc"
       fi
    else
       #Make some verification here (if file is there).
       #bash ${WIM_REP_TOOLS}/wim_updateInpWW3.sh ${yyyy_int} ${mm_int} ${dd_int} ${ts_int} ${dt} ${exp} ${W3_REP_INP}
       echo "Hot start (not implemented yet)"
    fi
-
-
    ((i=i+1))
 done

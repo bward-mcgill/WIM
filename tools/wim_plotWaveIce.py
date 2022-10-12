@@ -493,7 +493,7 @@ def plotWaveIceIdeal(fileCICE, fileWW3, repW3, repCI, repOUT, exp, datestr, xG, 
         ax[i].tick_params(labelsize=14)
         ax[i].set_xlabel('x [km]', size=16)
         ax[i].set_ylabel('y [km]', size=16)
-        cont=ax[i].contour(X,Y, hs_2d, colors='black', levels=[0.01, 0.02, 0.04, 0.06, 0.1, 0.14, 0.2])
+        cont=ax[i].contour(X,Y, hs_2d, colors='black', levels=[0.02, 0.1, 0.2, 0.4, 0.8, 1, 1.4, 2, 3]) #, levels=[0.01, 0.02, 0.04, 0.06, 0.1, 0.14, 0.2])
         color=ax[i].contourf(X,Y,var_2d, 50, cmap=reversed_map)
         #ax[i].barbs(X[0:100:10,0:100:10], Y[0:100:10,0:100:10], u_wind[0:100:10,0:100:10], v_wind[0:100:10,0:100:10], length=8, pivot='middle')
         ax[i].clabel(cont, fontsize= 12)
@@ -550,7 +550,7 @@ def main():
 
     #list_var=['aice_ww', 'hice_ww', 'diam_ww'] #,'ic1','ic5'] #Ice concentration, Ice thickness, Mean floe size diameter
 
-    list_var=['aice', 'hi', 'fsdrad']
+    list_var=['aice', 'hi'] #, 'fsdrad']
     #list_var=['ice', 'ice', 'ice']
 
     start_y=args.start_y
@@ -609,7 +609,9 @@ def main():
             datestrW3=str(datetimeW3.year).zfill(4)+"-"+str(datetimeW3.month).zfill(2)+"-"+str(datetimeW3.day).zfill(2)+"-"+str(datetimeW3.hour*3600).zfill(5)
             datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)+"-"+str(datetimeCI.hour*3600).zfill(5)
             fileCI="iceh_01h."+datestrCI+".nc"
-            fileW3="ww3."+datestrW3+".nc"
+#            REP_IN_W3="/aos/home/bward/wim/ww3/model/out/case10"
+            fileW3="ww3.2005-01-01-07200.nc"
+#            fileW3="ww3."+datestrW3+".nc"
             print("CICE file : "+fileCI, "WW3 file : "+fileW3)
         elif coupledWW3 == "false":
             print("Uncoupled WW3 simulation")

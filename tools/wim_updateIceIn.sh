@@ -9,10 +9,11 @@ sec_init_new=${4}
 ice_ic_new=${5}
 wave_spec_file_new=${6}
 wave_spec_type_new=${7}
-ndtCICE_new=${8}
-ndtCICEUnit_new=${9}
-freqCICE_new=${10}
-CI_REP_WRK=${11}
+tr_fsd_new=${8}
+ndtCICE_new=${9}
+ndtCICEUnit_new=${10}
+freqCICE_new=${11}
+CI_REP_WRK=${12}
 
 echo "|------------Update CICE namelist ${CI_REP_WRK}/ice_in-------------|"
 
@@ -36,6 +37,7 @@ echo "ice_ic has been updated to ${ice_ic_new}"
 
 sed -i "/wave_spec_file /c\    wave_spec_file  = \'${wave_spec_file_new}\'" ${CI_REP_WRK}/ice_in
 sed -i "/wave_spec_type /c\    wave_spec_type  = \'${wave_spec_type_new}\'" ${CI_REP_WRK}/ice_in
+sed -i "/tr_fsd /c\    tr_fsd  = .${tr_fsd_new}." ${CI_REP_WRK}/ice_in
 
 sed -i "/npt /c\    npt         = ${ndtCICE_new}" ${CI_REP_WRK}/ice_in
 echo "npt has been updated to ${ndtCICE_new}"
@@ -56,5 +58,4 @@ sed -i "/f_fsdrad /c\    f_fsdrad         = \'${freqCICE_new}\'" ${CI_REP_WRK}/i
 echo "f_aice, f_hi and f_fsdrad has been updated to \'${freqCICE_new}\'"
 echo "wave_spec_file has been updated to $wave_spec_file_new"
 echo "wave_spec_type has been updated to $wave_spec_type_new"
-
-
+echo "tr_fsd has been updated to $tr_fsd_new"

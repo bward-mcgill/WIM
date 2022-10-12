@@ -36,8 +36,8 @@ echo "Output option has been updated to ${w3_start_new} ${dt} ${w3_end_new} in $
 sed -i "s/ .*WimUpRst/   ${w3_end_new} ${dt} ${w3_endRst_new} \$WimUpRst/" ${W3_REP_INP}/ww3_shel_${exp}.inp
 echo "Restart option has been updated to ${w3_end_new} ${dt} ${w3_endRst_new} in ${W3_REP_INP}/ww3_shel_${exp}.inp"
 
-sed -i "s/ .*WimUpIC2/    'IC2' ${w3_start_new} 1.83e-6 \$WimUpIC2/" ${W3_REP_INP}/ww3_shel_${exp}.inp
-echo "IC2 option has been updated to 'IC2' ${w3_start_new} 1.83e-6 in ${W3_REP_INP}/ww3_shel_${exp}.inp"
+#sed -i "s/ .*WimUpIC2/    'IC2' ${w3_start_new} 1.83e-6 \$WimUpIC2/" ${W3_REP_INP}/ww3_shel_${exp}.inp
+#echo "IC2 option has been updated to 'IC2' ${w3_start_new} 1.83e-6 in ${W3_REP_INP}/ww3_shel_${exp}.inp"
 
 sed -i "s/ .*WimUpOunf/   ${w3_start_new} ${dt} 1 \$WimUpOunf/" ${W3_REP_INP}/ww3_ounf_${exp}.inp
 echo "Output option has been updated to ${w3_start_new} ${dt} 1 in ${W3_REP_INP}/ww3_ounf_${exp}.inp"
