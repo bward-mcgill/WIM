@@ -126,6 +126,8 @@ def main():
     nlon, nlat, t_lat, t_lon = get_geomWW3(repOutW3, fileOutW3, defaultExp)
 #    listVar=['utic', 'vtic', 'efreq']
     listVar=['utic', 'vtic']
+ #   fileOutSpec="ww3.2005-01-01-03600_efreq.nc"
+ #   fileOutW3="ww3.2005-01-01-03600.nc"
     fileOutSpec=fileOutW3[:-3]+"_efreq.nc"
     print("File :"+repOutW3+"/"+fileOutW3+" is read")
     for var in listVar:

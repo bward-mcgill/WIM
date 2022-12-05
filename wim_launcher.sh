@@ -118,7 +118,6 @@ do
       # In the case of a cold start, timestep 0 : create a wave field and initiate FSD from internal.
       if [ $i -eq 0 ]; then
         echo "Cold start !"
-
         if ${tr_fsd}; then
             #Initiate FSD.
             ice_ic=${ice_ic_initFSD}
@@ -130,10 +129,9 @@ do
             bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${tr_fsd} ${CST_NDT} ${CST_NDT_U} ${CST_FREQ} ${CI_REP_WRK}
             ./cice.submit
         fi
-
         if [ ${default_exp} == "wimgx3" ]; then
            rm -f ${CI_REP_RST}/iced.fsd.nc ; ${REP_CDO}/cdo select,name=fsd001,fsd002,fsd003,fsd004,fsd005,fsd006,fsd007,fsd008,fsd009,fsd010,fsd011,fsd012 ${CI_REP_RST}/iced.${dateTsp1}.nc ${CI_REP_RST}/iced.fsd.nc > /dev/null 2>&1
-           rm -f ${CI_REP_RST}/iced.${dateTs}_fsd.nc ; ${REP_CDO}/cdo merge ${CI_REP_RST}/iced.fsd.nc ${CI_REP_RST}/iced.${dateTs}.nc ${CI_REP_RST}/iced.${dateTs}_fsd.nc> /dev/null 2>&1 ; rm -f ${CI_REP_RST}/iced.${dateTsp1}.nc
+           rm -f ${CI_REP_RST}/iced.${dateTs}_fsd.nc ; ${REP_CDO}/cdo merge ${CI_REP_RST}/iced.fsd.nc ${CI_REP_RST}/iced.${dateTs}.nc ${CI_REP_RST}/iced.${dateTs}_fsd.nc > /dev/null 2>&1 ; rm -f ${CI_REP_RST}/iced.${dateTsp1}.nc
           if ! ${bool_CoupledCICE}; then
                # If we want to launch an uncoupled simulation of CICE (change ndt)
                #ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
@@ -159,12 +157,25 @@ do
                bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${tr_fsd} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
                ./cice.submit
            fi
+        elif [ ${default_exp} == "wim2p5" ]; then
+           if ! ${bool_CoupledCICE}; then
+              ice_ic='internal'
+              wave_spec_file=${wave_file_cst}
+#              wave_spec_type='none'
+              wave_spec_type="random"
+              bash ${WIM_REP_TOOLS}/wim_updateIceIn.sh ${year_init} ${month_init} ${day_init} ${sec_init} ${ice_ic} ${wave_spec_file} ${wave_spec_type} ${tr_fsd} ${ndtCICE} ${ndtCICE_u} ${dtCICEOut_u} ${CI_REP_WRK}
+              ./cice.submit
+              ${REP_CDO}/cdo aexpr,"fsdrad=fsdrad*2"  ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad > /dev/null 2>&1
+              cp ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc ; rm -f ${CI_REP_OUT}/history/iceh_01h.${dateTsp1}.nc_2xfsdrad
+              echo "Uncoupled CICE simulation done, exit loop."
+              break
+           fi
         fi
      #Timestep 1 is special for the idealised case, we still need to start from internal. Might not be necessary.
      elif [ $i -eq 1 ]; then
         #Now we start simulation for real ! We redo the initial timestep, but now with a wave field an the fsd variables.
         if [ ${default_exp} == "wimgx3" ]; then
-            ice_ic=${CI_REP_RST}/iced.${dateTs}.nc
+            ice_ic=${CI_REP_RST}/iced.${dateTs}_fsd.nc
             wave_spec_file=${W3_REP_OUT}/ww3.${dateTs}_efreq.nc
             wave_spec_type="random"
         elif [ ${default_exp} == "wim2p5" ]; then

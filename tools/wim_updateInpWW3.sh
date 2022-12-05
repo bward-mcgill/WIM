@@ -42,6 +42,9 @@ echo "Restart option has been updated to ${w3_end_new} ${dt} ${w3_endRst_new} in
 sed -i "s/ .*WimUpOunf/   ${w3_start_new} ${dt} 1 \$WimUpOunf/" ${W3_REP_INP}/ww3_ounf_${exp}.inp
 echo "Output option has been updated to ${w3_start_new} ${dt} 1 in ${W3_REP_INP}/ww3_ounf_${exp}.inp"
 
+sed -i "s/ .*WimUpWind/ \'..\/..\/..\/cice-dirs\/input\/wind\/JRA55_gx3_03hr_forcing_${year_new}.nc\' \$WimUpWind/" ${W3_REP_INP}/ww3_prnc_wnd_${exp}.inp
+echo "Wind forcing file has been updated to \'..\/..\/..\/cice-dirs\/input\/wind\/JRA55_gx3_03hr_forcing_${year_new}.nc\' in ${W3_REP_INP}/ww3_prnc_wnd_${exp}.inp"
+
 if ! ${bool_Coupled}; then
     sed -i "s/ .*WimOutCoupled/   10 \$WimOutCoupled/" ${W3_REP_INP}/ww3_ounf_${exp}.inp
     echo "Uncoupled simulation, output files have a 10 character format."
