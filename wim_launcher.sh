@@ -12,7 +12,8 @@
 # --------------------------------------------------------------------------- #
 
 #Source config file
-. ${HOME}/wim/wim_launcher.cfg
+WIM_REP=${1}
+. ${WIM_REP}/wim_launcher.cfg
 
 #Constants
 W3_REP_BIN=${W3_REP_MOD}/bin

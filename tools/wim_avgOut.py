@@ -15,6 +15,52 @@ import os
 import pandas as pd
 import xarray as xr
 
+def avgHourlyFile(list_ts, list_var, nhour, REP_IN_CI, REP_IN_W3):
+    dfInit=pd.DataFrame()
+    dsSum=dfInit.to_xarray()
+    dsAvg=dfInit.to_xarray()
+    compteur=0
+    for ts in list_ts:
+        datetimeW3=ts
+        datetimeCI=ts+timedelta(seconds=3600)
+        datestrW3=str(datetimeW3.year).zfill(4)+"-"+str(datetimeW3.month).zfill(2)+"-"+str(datetimeW3.day).zfill(2)+"-"+str(datetimeW3.hour*3600).zfill(5)
+        datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)+"-"+str(datetimeCI.hour*3600).zfill(5)
+        nameCI="iceh_01h."+datestrCI+".nc"
+        nameW3="ww3."+datestrW3+".nc"
+        fileCI=REP_IN_CI+"/"+nameCI
+        fileW3=REP_IN_W3+"/"+nameW3
+        temp_ds=xr.open_dataset(fileCI)
+        temp_dsW3=xr.open_dataset(fileW3)
+
+        # For a CICE variable.
+        for var in list_var:
+            if compteur == 0:
+                dsSum[var]=temp_ds[var]
+            else:
+                dsSum[[var]][var].values=dsSum[[var]][var].values+temp_ds[[var]][var]
+            
+        # For a WW3 variable.
+        if compteur == 0:
+            dsSum['hs']=temp_ds['aice']
+            dsSum[['hs']]['hs'].values=temp_dsW3[['hs']]['hs']
+            dsSum['lm']=temp_ds['aice']
+            dsSum[['lm']]['lm'].values=temp_dsW3[['lm']]['lm']
+            dsSum['uatm']=temp_ds['aice']
+            dsSum[['uatm']]['uatm'].values=temp_dsW3[['uwnd']]['uwnd']
+            dsSum['vatm']=temp_ds['aice']
+            dsSum[['vatm']]['vatm'].values=temp_dsW3[['vwnd']]['vwnd']
+        else:
+            dsSum[['hs']]['hs'].values=dsSum[['hs']]['hs'].values+temp_dsW3[['hs']]['hs']
+            dsSum[['lm']]['lm'].values=dsSum[['lm']]['lm'].values+temp_dsW3[['lm']]['lm']
+            dsSum[['uatm']]['uatm'].values=dsSum[['uatm']]['uatm'].values+temp_dsW3[['uwnd']]['uwnd']
+            dsSum[['vatm']]['vatm'].values=dsSum[['vatm']]['vatm'].values+temp_dsW3[['vwnd']]['vwnd']
+        compteur=compteur+1
+
+    for var in list_var:
+        dsAvg=dsSum/nhour
+    
+    return dsAvg
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -37,7 +83,7 @@ def main():
     avgFreqU=args.avgFreqU
     nbAvg=args.nbAvg+1
 
-    list_var=['aice', 'hi', 'fsdrad', 'strwvx', 'strwvy', 'strairx', 'strairy'] #, 'uatm', 'vatm']
+    list_var=['aice', 'hi', 'fsdrad', 'strwvx', 'strwvy', 'strairx', 'strairy', 'dafsd_wave', 'dafsd_weld', 'dafsd_latg', 'dafsd_latm', 'dafsd_newi'] #, 'uatm', 'vatm']
 
     start_y=args.start_y
     start_d=args.start_d
@@ -60,44 +106,8 @@ def main():
         list_ts=createListDateTime(list_avg[nAvg], freqCoup, freqCoupU, nhour)
         strTimeIni=str(list_avg[nAvg].year).zfill(4)+str(list_avg[nAvg].month).zfill(2)+str(list_avg[nAvg].day).zfill(2)+str(list_avg[nAvg].hour*3600).zfill(5)
         strTimeEnd=str(list_avg[nAvg+1].year).zfill(4)+str(list_avg[nAvg+1].month).zfill(2)+str(list_avg[nAvg+1].day).zfill(2)+str(list_avg[nAvg+1].hour*3600).zfill(5)
-        dfInit=pd.DataFrame()
-        dsSum=dfInit.to_xarray()
-        dsAvg=dfInit.to_xarray()
-        compteur=0
-        for ts in list_ts:
-            datetimeW3=ts
-            datetimeCI=ts+timedelta(seconds=3600)
-            datestrW3=str(datetimeW3.year).zfill(4)+"-"+str(datetimeW3.month).zfill(2)+"-"+str(datetimeW3.day).zfill(2)+"-"+str(datetimeW3.hour*3600).zfill(5)
-            datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)+"-"+str(datetimeCI.hour*3600).zfill(5)
-            nameCI="iceh_01h."+datestrCI+".nc"
-            nameW3="ww3."+datestrW3+".nc"
-            fileCI=REP_IN_CI+"/"+nameCI
-            fileW3=REP_IN_W3+"/"+nameW3
-            temp_ds=xr.open_dataset(fileCI)
-            temp_dsW3=xr.open_dataset(fileW3)
-            for var in list_var:
-                 if compteur == 0:
-                     dsSum[var]=temp_ds[var]
-                 else:
-                     dsSum[[var]][var].values=dsSum[[var]][var].values+temp_ds[[var]][var]
-
-            if compteur == 0:
-                dsSum['hs']=temp_ds['aice']
-                dsSum[['hs']]['hs'].values=temp_dsW3[['hs']]['hs']
-                dsSum['uatm']=temp_ds['aice']
-                dsSum[['uatm']]['uatm'].values=temp_dsW3[['uwnd']]['uwnd']
-                dsSum['vatm']=temp_ds['aice']
-                dsSum[['vatm']]['vatm'].values=temp_dsW3[['vwnd']]['vwnd']
-
-            else:
-                dsSum[['hs']]['hs'].values=dsSum[['hs']]['hs'].values+temp_dsW3[['hs']]['hs']
-                dsSum[['uatm']]['uatm'].values=dsSum[['uatm']]['uatm'].values+temp_dsW3[['uwnd']]['uwnd']
-                dsSum[['vatm']]['vatm'].values=dsSum[['vatm']]['vatm'].values+temp_dsW3[['vwnd']]['vwnd']
-            compteur=compteur+1
-
-        for var in list_var:
-            dsAvg=dsSum/nhour
-
+        
+        dsAvg=avgHourlyFile(list_ts, list_var, nhour, REP_IN_CI, REP_IN_W3)
         print("Saving :", REP_OUT+"/"+"iceh_avg."+strTimeIni+"-"+strTimeEnd+".nc") 
         dsAvg.to_netcdf(REP_OUT+"/"+"iceh_avg."+strTimeIni+'-'+strTimeEnd+".nc")
 

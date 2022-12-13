@@ -8,6 +8,8 @@ CI_REP_OUT=${CI_REP_MOD}/out/${exp}
 WIM_REP_PP=${WIM_REP}/post-proc
 WIM_REP_TOOLS=${WIM_REP}/tools
 
+
+
 if ${bool_CoupledWW3} && ${bool_CoupledCICE} ;then 
    bool_Coupled=true
 elif ! ${bool_CoupledWW3} && ! ${bool_CoupledCICE} ;then
@@ -58,8 +60,8 @@ elif [ ${pp_prod} == 'avg' ]; then
    if [ ! -d "${WIM_REP_PP}/${exp}/avg" ]; then
       mkdir "${WIM_REP_PP}/${exp}/avg"
    fi
-#   rm -rf ${WIM_REP_PP}/${exp}/avg/*
-#   ${WIM_REP_TOOLS}/wim_avgOut.py ${exp} ${year_init_out} ${month_init_out} ${day_init_out} ${sec_init_out} ${ndtOutA} ${dtOutA} ${dtOutA_u} ${W3_REP_OUT} "${CI_REP_OUT}/history" "${WIM_REP_PP}/${exp}/avg"
+   rm -rf ${WIM_REP_PP}/${exp}/avg/*
+   ${WIM_REP_TOOLS}/wim_avgOut.py ${exp} ${year_init_out} ${month_init_out} ${day_init_out} ${sec_init_out} ${ndtOutA} ${dtOutA} ${dtOutA_u} ${W3_REP_OUT} "${CI_REP_OUT}/history" "${WIM_REP_PP}/${exp}/avg"
    ${WIM_REP_TOOLS}/wim_plotWaveIce.py ${pp_prod} ${exp} ${ndtOutA} ${dtCICE} ${year_init_out} ${month_init_out} ${day_init_out} ${sec_init_out} ${W3_REP_OUT} "${WIM_REP_PP}/${exp}/avg" "${WIM_REP_PP}/${exp}" ${default_exp} ${dtOutA} ${dtOutA_u} ${bool_CoupledWW3} ${bool_CoupledCICE}
 else
    echo 'Unknown post-proc option.'

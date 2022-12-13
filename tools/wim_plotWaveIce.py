@@ -672,8 +672,8 @@ def main():
     #list_var=['aice_ww', 'hice_ww', 'diam_ww'] #,'ic1','ic5'] #Ice concentration, Ice thickness, Mean floe size diameter
 
     #Faudrait pouvoir avoir ca dans le fichier de config. 
-    list_var=['aice', 'hi', 'fsdrad']
-    #list_var=['ice', 'ice', 'ice']
+    #list_var=['aice', 'hi', 'fsdrad']
+    list_var=['fsdrad']
 
     start_y=args.start_y
     start_d=args.start_d

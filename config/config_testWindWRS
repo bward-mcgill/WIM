@@ -5,7 +5,7 @@ WIM_REP_PP=${HOME}/wim/post-proc
 WIM_REP_TOOLS=${HOME}/wim/tools
 WIM_REP=${HOME}/wim
 #exp=case42
-exp=case55
+exp=case62
 default_exp=wim2p5
 REP_CDO="/opt/cdo/bin/"
 
@@ -19,7 +19,7 @@ dtCICE=3600 #for CICE in sec (a voir)
 dtCICE_u=s
 dtCoup=3600
 dtCoup_u=s
-ndtCoup=168
+ndtCoup=24
 bool_coldStart=true
 ice_ic_initFSD=none
 tr_fsd=true

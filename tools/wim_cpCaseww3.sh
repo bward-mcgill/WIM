@@ -25,6 +25,8 @@ do
    mv -- "${file}" "${file//${old_case}/${new_case}}" > /dev/null 2>&1
 done
 
+rm -rf $REP_INP/${new_case}/ice_forcing*.nc
+
 find ./ -type f -exec sed -i "s/$old_case/$new_case/g" {} \;
 
 echo "New exp $REP_INP/$new_case is created, you can now edit it."
