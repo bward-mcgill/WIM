@@ -6,3 +6,5 @@ post-proc/case*
 post-proc/initial_test/
 *png
 tool/*.txt
+config
+

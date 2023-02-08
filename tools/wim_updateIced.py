@@ -22,7 +22,7 @@ def writeRstCICE(fileCICE, pathCICE, data, var, defaultExp):
 #   data=np.ones((data.shape[0], data.shape[1]))*5
 #   data1=np.zeros((data.shape[0], data.shape[1]))
    #Only zonal stress.
-   if defaultExp == "wimgx3":
+   if defaultExp == "wimgx3" or defaultExp == "wimgx1" or defaultExp == "wimtx1":
        if (id_var == 'strwvx'):
            dsCICE[id_var]=(['lat', 'lon'], data)
        elif (id_var == 'strwvy'):
@@ -51,7 +51,7 @@ def get_geomWW3(path, file, defaultExp):
         tlon = fid.variables['x'][:]
         ni = fid.dimensions['y'].size #ni is for lat, nj for lon
         nj = fid.dimensions['x'].size
-    elif defaultExp == "wimgx3":
+    elif defaultExp == "wimgx3" or defaultExp == "wimgx1" or defaultExp == "wimtx1":
         tlat = fid.variables['latitude'][:]
         tlon = fid.variables['longitude'][:]
         ni = fid.dimensions['lon'].size #ni is for lat, nj for lon
@@ -113,7 +113,7 @@ def main():
     parser.add_argument("fileOutW3", help="Name of WW3 output file.")
     parser.add_argument("repRstCI", help="Path for CICE restart file.")
     parser.add_argument("fileRstCI", help="Path for CICE restart file.")
-    parser.add_argument("defaultExp", help="wim2p5 or wimgx3")
+    parser.add_argument("defaultExp", help="wim2p5, wimgx3, wimgx1, wimtx1")
     args = parser.parse_args()
 
     #Define variables

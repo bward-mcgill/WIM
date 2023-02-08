@@ -11,6 +11,7 @@ WIM_REP_TOOLS=${2}
 CI_REP_WRK=${3}
 CI_REP_OUT=${4}
 
+echo $CI_REP_OUT
 ci_list_src=`find ${CI_REP_MOD}/cicecore/ -name "*.F90"` 
 ip_list_src=`find ${CI_REP_MOD}/icepack/columnphysics/ -name "*.F90"`
 ci_list_src="${ci_list_src} ${ip_list_src}"

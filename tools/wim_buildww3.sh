@@ -44,6 +44,11 @@ for prog in $list_prog
 do
    echo "|-----Compile $prog------|"
    #Compile
-   bash ${REP_BIN}/w3_make ${prog}
+   if [ ${prog} = "ww3_shel" ]; then 
+       bash ${REP_BIN}/make_HYB ${prog}
+   else
+       bash ${REP_BIN}/w3_make ${prog}
+   fi
+
 done
 #-----------------------------THE END--------------------------------------------#

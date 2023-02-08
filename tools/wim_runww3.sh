@@ -61,7 +61,13 @@ do
       output=${REP_WRK}/${prog}_${exp}.out
       rm -f ${prog}.inp
       ln -s ${REP_INP}/${prog}_${exp}.inp ${prog}.inp
-      ${REP_EXE}/${prog} > ${output}
+
+      if [ $prog = "ww3_shel" ]; then
+          mpirun -np 8 ${REP_EXE}/${prog} > ${output}
+      else
+          ${REP_EXE}/${prog} > ${output}
+      fi
+
       rm -f ${prog}.inp     
    fi
 

@@ -1,6 +1,27 @@
+
 Wave Ice Model (WAVEWATCH III and CICE).
 Summary of the parameters used in each run.
 Benjamin Ward
 McGill University
 |exp           |year_init     |month_init    |day_init      |sec_init      |dtCoup        |ndtCoup       |description   
-|case62        |2005          |1             |1             |0             |3600s         |24             | none
+|case57        |2006          |12            |1             |0             |3600s         |744           |FSD spin-up, ml fracture, wave height condition removed
+|case62        |2006          |12            |1             |0             |3600s         |744           |FSD spin-up, og fracture (no hs check), concentration scaling for wind input
+|case59        |2006          |12            |1             |0             |3600s         |744           |FSD spin-up, wave fracture 1ter, wave height condition removed
+|case60        |2006          |12            |1             |0             |3600s         |744           |FSD spin-up, wave fracture conv, no wave height condition
+|case63        |2006          |12            |1             |0             |3600s         |744           |FSD spin-up, ml wave fracture, hs >= 0.5h criterion
+|case64        |2006          |12            |1             |0             |3600s         |744           |FSD spin-up, ICEWIND ICESLN=1.25 (i.e. aice>0.8), hs>0.1 for wavefrac, internal restart
+|case65        |2006          |12            |1             |0             |3600s         |744           |FSD spin-up, ICEWIND ICESLN=1.25 (i.e. aice>0.8), hs>0.1 for wavefrac, none restart
+|case66        |2005          |1             |1             |0             |3600s         |9504          |Test run for the gx1 grid. 2005 ic files from the consortium. Weirdly large MIZ.
+|case67        |2005          |1             |1             |0             |3600s         |6             |Test run for the tx1 grid. 2005 ic files (not working, problem with vertical thermo), problem fixed when I don't use their restart file).
+|case68        |2005          |1             |1             |0             |3600s         |336           |Same as case66, but increased IC2VISC to 10
+|case69        |2005          |1             |1             |0             |3600s         |9504          |Same as case66, but different wave generation, now it's the same as Boutin 2022.
+|case70        |2005          |1             |1             |0             |3600s         |9504          |Same as case66 but with Boutin 2022 dissipitation
+|case71        |2005          |1             |1             |0             |3600s         |6             |Same as case66, but all the same parameter as Boutin 2022. With REF1, but not ICEVOL2H, NOSW, IS2FREEFSD (not implemented)
+|case72        |2005          |1             |1             |0             |3600s         |24            |An idealised experiment with a 5km resolution use Boutin 2022 cfg
+|case73        |2005          |1             |1             |0             |3600s         |12            |Same as case72 but with 25km resolution
+|case74        |2005          |1             |1             |0             |3600s         |336           |Same as case68, but with IC4 attenuation scheme.
+|case75        |2005          |1             |1             |0             |3600s         |3             |Same as case74, but 24 fsd categories
+|case76        |2005          |1             |1             |0             |3600s         |1             |Same as case75 but with climatological ocean forcing
+|case77        |2005          |1             |1             |0             |3600s         |336           |same as case75, but with IC5 attenuation scheme
+|case78        |2005          |1             |1             |0             |3600s         |1             |Dynamic spin-up!
+|case79        |2007          |1             |1             |0             |0s            |0             |Dynamic spin-up without ocean forcing

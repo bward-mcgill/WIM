@@ -9,6 +9,7 @@ exp=${6}
 bool_Coupled=${7}
 W3_REP_INP=${8}
 WIM_REP_TOOLS=${9}
+grid=${10}
 
 ((sec_end_new=sec_ini_new+dt))
 ((sec_rst_new=sec_ini_new+dt+dt))
@@ -21,6 +22,8 @@ w3_end_new="${w3_end_new//-/ }"
 
 w3_endRst_new=`${WIM_REP_TOOLS}/wim_dateTime.py printTs ${year_new} ${month_new} ${day_new} ${sec_rst_new} 'WW3'`
 w3_endRst_new="${w3_endRst_new//-/ }"
+
+yearMonthForcing=${w3_endRst_new:0:8}
 
 echo "|------------Update WW3 namelists ${W3_REP_INP}/ww3_shel(ounf)_${exp}.inp-------------|"
 
@@ -42,8 +45,8 @@ echo "Restart option has been updated to ${w3_end_new} ${dt} ${w3_endRst_new} in
 sed -i "s/ .*WimUpOunf/   ${w3_start_new} ${dt} 1 \$WimUpOunf/" ${W3_REP_INP}/ww3_ounf_${exp}.inp
 echo "Output option has been updated to ${w3_start_new} ${dt} 1 in ${W3_REP_INP}/ww3_ounf_${exp}.inp"
 
-sed -i "s/ .*WimUpWind/ \'..\/..\/..\/cice-dirs\/input\/wind\/JRA55_gx3_03hr_forcing_${year_new}.nc\' \$WimUpWind/" ${W3_REP_INP}/ww3_prnc_wnd_${exp}.inp
-echo "Wind forcing file has been updated to \'..\/..\/..\/cice-dirs\/input\/wind\/JRA55_gx3_03hr_forcing_${year_new}.nc\' in ${W3_REP_INP}/ww3_prnc_wnd_${exp}.inp"
+sed -i "s/ .*WimUpWind/ \'..\/..\/..\/ww3-dirs\/wind_ww3\/JRA55_03hr_forcing_${yearMonthForcing}.nc\' \$WimUpWind/" ${W3_REP_INP}/ww3_prnc_wnd_${exp}.inp
+echo "Wind forcing file has been updated to \'..\/..\/..\/cice-dirs\/input\/wind\/JRA55_03hr_forcing_${yearMonthForcing}.nc\' in ${W3_REP_INP}/ww3_prnc_wnd_${exp}.inp"
 
 if ! ${bool_Coupled}; then
     sed -i "s/ .*WimOutCoupled/   10 \$WimOutCoupled/" ${W3_REP_INP}/ww3_ounf_${exp}.inp

@@ -57,11 +57,10 @@ if [ "${switch_file}" != "${switch_old}" ]; then
 
    echo '|------------Compile WW3-------------|'
    bash ${WIM_REP_TOOLS}/wim_buildww3.sh ${W3_REP_MOD} ${exp} ${w3listProg}
+else
+   # Look if source code have changed.
+   bash ${WIM_REP_TOOLS}/wim_checkBuildWW3.sh ${W3_REP_MOD} ${WIM_REP_TOOLS} ${W3_REP_WRK} ${exp} ${w3listProg}
 fi
-
-# Look if source code have changed.
-bash ${WIM_REP_TOOLS}/wim_checkBuildWW3.sh ${W3_REP_MOD} ${WIM_REP_TOOLS} ${W3_REP_WRK} ${exp} ${w3listProg}
-
 ###----------------------Set up CICE environment-------------------#
 
 ##If case doesn't exist, we create it. 
@@ -74,9 +73,13 @@ if [ ! -e ${CI_REP_WRK} ]; then
       grid="gx3"
    elif [ ${default_exp} == "wim2p5" ]; then
       grid="gbox80"
+   elif [ ${default_exp} == "wimgx1" ]; then
+      grid="gx1"
+   elif [ ${default_exp} == "wimtx1" ]; then
+      grid="tx1"
    fi
 
-   csh ./cice.setup -m conda -e linux -c ${CI_REP_WRK} -g ${grid} -s ${default_exp}
+   csh ./cice.setup -m conda -e linux -c ${CI_REP_WRK} -g ${grid} -s ${default_exp} -p 8x1
 
    if [ ! -e ${CI_REP_WRK} ]; then
       echo "There was a problem with CICE setup"
@@ -93,9 +96,8 @@ if [ ! -e ${CI_REP_WRK} ]; then
       echo "Creating new case from ${refCaseCICE} namelist."
       cat ${CI_REP_MOD}/work/${refCaseCICE}/ice_in > ice_in
    fi
-
-   csh ${CI_REP_WRK}/cice.build
+   bash ${WIM_REP_TOOLS}/wim_checkBuildCICE.sh ${CI_REP_MOD} ${WIM_REP_TOOLS} ${CI_REP_WRK} ${CI_REP_OUT}
+#   csh ${CI_REP_WRK}/cice.build
+else
+   bash ${WIM_REP_TOOLS}/wim_checkBuildCICE.sh ${CI_REP_MOD} ${WIM_REP_TOOLS} ${CI_REP_WRK} ${CI_REP_OUT}
 fi
-
-bash ${WIM_REP_TOOLS}/wim_checkBuildCICE.sh ${CI_REP_MOD} ${WIM_REP_TOOLS} ${CI_REP_WRK} ${CI_REP_OUT}
-

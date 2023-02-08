@@ -15,7 +15,7 @@ run: wim_launch post_proc
 case: ${WIM_REP}/wim_launcher.cfg
 	@bash ${WIM_REP_TOOLS}/wim_makeCase.sh ${WIM_REP}
 
-wim_launch: case README
+wim_launch: case
 	@${WIM_REP}/wim_launcher.sh ${WIM_REP}
 
 README: 
@@ -23,6 +23,9 @@ README:
 
 post_proc:
 	@${WIM_REP_TOOLS}/wim_makePostProc.sh
+
+CONFIG:
+	@${WIM_REP_TOOLS}/wim_cpConfig.sh ${WIM_REP}
 
 clean:
 	@${WIM_REP_TOOLS}/wim_clean.sh ${WIM_REP}

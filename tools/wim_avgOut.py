@@ -76,14 +76,15 @@ def main():
     parser.add_argument("rep_inCI", help="Path for CICE output.")
     parser.add_argument("rep_out", help="Path to store plot.")
 
-    args = parser.parse_args()
+#    args = parser.parse_args()
+    args, list_var = parser.parse_known_args()
 
     #Define variables
     avgFreq=args.avgFreq
     avgFreqU=args.avgFreqU
     nbAvg=args.nbAvg+1
 
-    list_var=['aice', 'hi', 'fsdrad', 'strwvx', 'strwvy', 'strairx', 'strairy', 'dafsd_wave', 'dafsd_weld', 'dafsd_latg', 'dafsd_latm', 'dafsd_newi'] #, 'uatm', 'vatm']
+#    list_var=['aice', 'hi', 'fsdrad'] #, 'strwvx', 'strwvy', 'strairx', 'strairy', 'dafsd_wave', 'dafsd_weld', 'dafsd_latg', 'dafsd_latm', 'dafsd_newi'] #, 'uatm', 'vatm']
 
     start_y=args.start_y
     start_d=args.start_d
@@ -106,7 +107,6 @@ def main():
         list_ts=createListDateTime(list_avg[nAvg], freqCoup, freqCoupU, nhour)
         strTimeIni=str(list_avg[nAvg].year).zfill(4)+str(list_avg[nAvg].month).zfill(2)+str(list_avg[nAvg].day).zfill(2)+str(list_avg[nAvg].hour*3600).zfill(5)
         strTimeEnd=str(list_avg[nAvg+1].year).zfill(4)+str(list_avg[nAvg+1].month).zfill(2)+str(list_avg[nAvg+1].day).zfill(2)+str(list_avg[nAvg+1].hour*3600).zfill(5)
-        
         dsAvg=avgHourlyFile(list_ts, list_var, nhour, REP_IN_CI, REP_IN_W3)
         print("Saving :", REP_OUT+"/"+"iceh_avg."+strTimeIni+"-"+strTimeEnd+".nc") 
         dsAvg.to_netcdf(REP_OUT+"/"+"iceh_avg."+strTimeIni+'-'+strTimeEnd+".nc")

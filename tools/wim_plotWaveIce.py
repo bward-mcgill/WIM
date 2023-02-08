@@ -16,161 +16,161 @@ import netCDF4 as nc
 import numpy.ma as ma
 import os
 
-def plotWaveIceRegrid(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon, repOUT, case, datestr, plot_type, list_var):
-
-    '''This function plots CICE data and creates a .png file.'''
-
-    from mpl_toolkits.basemap import Basemap,shiftgrid
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-    orig_map=plt.cm.get_cmap('Spectral')
-    reversed_map = orig_map.reversed()
-    
-    # Suppress Matplotlib deprecation warnings
-    warnings.filterwarnings("ignore", category=UserWarning)
-    fig, axes = plt.subplots(len(list_var),1,figsize=[14,8*len(list_var)])
-    i=0
-    for var in list_var:
-
-        #Read the datas
-        dataCI=read_data(REP_IN_CICE, [fileCI], var, nlon, nlat)
-        data=dataCI
-        dataW3=read_data(REP_IN_W3, [fileW3], 'hs', nlon, nlat)
-        dataUwind=read_data(REP_IN_W3, [fileW3], 'uwnd', nlon, nlat)
-        dataVwind=read_data(REP_IN_W3, [fileW3], 'vwnd', nlon, nlat)
-
-        plt.sca(axes[i])
-
-        #Choose projection
-#        m = Basemap(projection='npstere', boundinglat=35,lon_0=270, resolution='l')
-#        m = Basemap(projection='spstere', boundinglat=-45,lon_0=270, resolution='l')
-
-        m = Basemap(projection='merc',llcrnrlat=-80,urcrnrlat=80, llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='c')
-        m.drawcoastlines()
-        m.fillcontinents()
-
-        if plot_type == 'scatter':
-            x, y = m(lon,lat)
-            sc = m.scatter(x, y, c=data, cmap=reversed_map, lw=0, s=4)
-        else:
-
-            # vector_transform require for the longitude to be from -180 to 180 in order,
-            # Therefore we have to replace all the data in order.
-            lon1 = lon.copy()
-            for t in range(len(lon)):
-                l=lon[t]
-                if l >= 180:
-                    lon1[t]=lon1[t]-360. 
-            lon = lon1
-            
-            data1 = data[:,0:int(len(lon)/2)]
-            data2 = data[:,60:]
-            dataW31 = dataW3[:,0:60]
-            dataW32 = dataW3[:,60:]
-            dataUwind1 = dataUwind[:,0:60]
-            dataUwind2 = dataUwind[:,60:]
-            dataVwind1 = dataVwind[:,0:60]
-            dataVwind2 = dataVwind[:,60:]
-
-            mask1 = data.mask[:,0:60]
-            mask2 = data.mask[:,60:]
-            maskwind1 = dataUwind.mask[:,0:60]
-            maskwind2 = dataVwind.mask[:,60:]
-            maskhs1 = dataW3.mask[:,0:60]
-            maskhs2 = dataW3.mask[:,60:]
-
-            lon1 = lon[0:60]
-            lon2 = lon[60:]            
-
-            data_new = np.hstack((data2, data1))
-            dataUwind_new = np.hstack((dataUwind2, dataUwind1))
-            dataVwind_new = np.hstack((dataVwind2, dataVwind1))
-            dataW3_new = np.hstack((dataW32, dataW31))
-
-            mask_new=np.hstack((mask2, mask1))
-            maskhs_new=np.hstack((maskhs2, maskhs1))
-            maskwind_new=np.hstack((maskwind2, maskwind1))
-
-            lon_new = np.hstack((lon2, lon1))
-
-            # Patch the discontinuity data (cyclic longitude).
-            # Create new array.
-            d = np.zeros((data.shape[0],data.shape[1]+1))
-            dW3 = np.zeros((dataW3.shape[0],dataW3.shape[1]+1))
-            dUwind = np.zeros((dataUwind.shape[0],dataUwind.shape[1]+1)) 
-            dVwind = np.zeros((dataVwind.shape[0],dataVwind.shape[1]+1)) 
-            lon_cyc = np.zeros(len(lon_new)+1)
-            mask = np.zeros((data.shape[0],data.shape[1]+1))
-            maskwind=np.zeros((data.shape[0],data.shape[1]+1))
-            maskhs=np.zeros((data.shape[0],data.shape[1]+1))
-
-            #Fill masks.
-            mask[:,0:-1] = mask_new[:,:]
-            mask[:,-1] = mask_new[:,0]
-            maskwind[:,0:-1] = maskwind_new[:,:]
-            maskwind[:,-1] = maskwind_new[:,0]
-            maskhs[:,0:-1] = maskhs_new[:,:]
-            maskhs[:,-1] = maskhs_new[:,0]
-
-            #Fill datas.
-            lon_cyc[0:-1] = lon_new[:]; lon_cyc[-1] = -lon_new[0]       
-            d[:,0:-1] = data_new[:,:]
-            d[:,-1] = data_new[:,0]
-            dW3[:,0:-1] = dataW3_new[:,:]
-            dW3[:,-1] = dataW3_new[:,0]        
-            dUwind[:,0:-1] = dataUwind_new[:,:]
-            dUwind[:,-1] = dataUwind_new[:,0]
-            dVwind[:,0:-1] = dataVwind_new[:,:]
-            dVwind[:,-1] = dataVwind_new[:,0]
-        
-            #Create masked datas
-            d1 = np.ma.masked_array(d,mask=mask)
-            d1Uwind=np.ma.masked_array(dUwind,mask=maskwind)
-            d1Vwind=np.ma.masked_array(dVwind,mask=maskwind)
-            d1hs=np.ma.masked_array(dW3,mask=maskhs)
-
-            #Create the grid (longitude,latitude) and actual position in the projection (x,y)
-            lons, lats = np.meshgrid(lon_cyc,lat)
-            x, y = m(lons, lats)
-
-            if plot_type == 'contour':
-                # Plot ice field
-                sc = m.contourf(x, y, d1, 10, cmap=reversed_map)
-                # Rotate and interpolate wind for a clean reprensation of vectors in the projection.
-                uproj,vproj,xx,yy = m.transform_vector(dUwind,dVwind,lon_cyc,lat,41,41,returnxy=True,masked=True)
-                # Plot winds
-                Q=axes[i].quiver(xx, yy, uproj, vproj)
-                # Plot waves
-                cont=axes[i].contour(x,y, dW3, colors='black')
-
-                axes[i].quiverkey(Q, 0.1, 0.1, 20, '20 m/s', labelpos='W')
-            else:  # pcolor
-                sc = m.pcolor(x, y, d1, cmap=reversed_map)
-                uproj,vproj,xx,yy = m.transform_vector(d1Uwind,d1Vwind,lon_cyc,lat,41,41,returnxy=True,masked=True)
-                axes[i].barbs(xx, yy, uproj, vproj, length=6, pivot='middle')
-                cont=axes[i].contour(x,y, dW3, colors='black')
-
-        m.drawparallels(np.arange(-90.,120.,15.),labels=[1,0,0,0], size=16) # draw parallels
-        m.drawmeridians(np.arange(0.,420.,30.),labels=[1,1,1,1], size=16) # draw meridians
-        cb=fig.colorbar(sc, ax=axes[i])
-        cb.ax.tick_params(labelsize=18)
-        axes[i].clabel(cont, fontsize= 12)
-        if var == 'ice' or var == 'aice':
-            cb.set_label('Ice Concentration', size=20)
-        elif var == 'ic1' or var == 'hi':
-            cb.set_label('Ice Thickess [m]', size=20)
-        elif var == 'ic5' or var == 'fsdrad':
-            cb.set_label('Mean Floe Diameter [m]', size=20)
-        elif var == 'airtmp':
-            cb.set_label('Air temperature', size=20)
-        elif var == 'glbrad':
-            cb.set_label('Surface downward shortwave', size=20)
-        i=i+1
-
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.97)
-#    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr, bbbox_to_anchor='tight', dpi=500)
-    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr,dpi='figure',format='png', metadata=None,bbbox_inches=None)
-    print("------------"+case+"_WaveIce_"+datestr+" as been plotted---------------------")
+#def plotWaveIceRegrid(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon, repOUT, case, datestr, plot_type, list_var):
+#
+#    '''This function plots CICE data and creates a .png file.'''
+#
+#    from mpl_toolkits.basemap import Basemap,shiftgrid
+#    from mpl_toolkits.axes_grid1 import make_axes_locatable
+#    orig_map=plt.cm.get_cmap('Spectral')
+#    reversed_map = orig_map.reversed()
+#    
+#    # Suppress Matplotlib deprecation warnings
+#    warnings.filterwarnings("ignore", category=UserWarning)
+#    fig, axes = plt.subplots(len(list_var),1,figsize=[14,8*len(list_var)])
+#    i=0
+#    for var in list_var:
+#
+#        #Read the datas
+#        dataCI=read_data(REP_IN_CICE, [fileCI], var, nlon, nlat)
+#        data=dataCI
+#        dataW3=read_data(REP_IN_W3, [fileW3], 'hs', nlon, nlat)
+#        dataUwind=read_data(REP_IN_W3, [fileW3], 'uwnd', nlon, nlat)
+#        dataVwind=read_data(REP_IN_W3, [fileW3], 'vwnd', nlon, nlat)
+#
+#        plt.sca(axes[i])
+#
+#        #Choose projection
+##        m = Basemap(projection='npstere', boundinglat=35,lon_0=270, resolution='l')
+##        m = Basemap(projection='spstere', boundinglat=-45,lon_0=270, resolution='l')
+#
+#        m = Basemap(projection='merc',llcrnrlat=-80,urcrnrlat=80, llcrnrlon=-180,urcrnrlon=180,lat_ts=20,resolution='c')
+#        m.drawcoastlines()
+#        m.fillcontinents()
+#
+#        if plot_type == 'scatter':
+#            x, y = m(lon,lat)
+#            sc = m.scatter(x, y, c=data, cmap=reversed_map, lw=0, s=4)
+#        else:
+#
+#            # vector_transform require for the longitude to be from -180 to 180 in order,
+#            # Therefore we have to replace all the data in order.
+#            lon1 = lon.copy()
+#            for t in range(len(lon)):
+#                l=lon[t]
+#                if l >= 180:
+#                    lon1[t]=lon1[t]-360. 
+#            lon = lon1
+#            
+#            data1 = data[:,0:int(len(lon)/2)]
+#            data2 = data[:,60:]
+#            dataW31 = dataW3[:,0:60]
+#            dataW32 = dataW3[:,60:]
+#            dataUwind1 = dataUwind[:,0:60]
+#            dataUwind2 = dataUwind[:,60:]
+#            dataVwind1 = dataVwind[:,0:60]
+#            dataVwind2 = dataVwind[:,60:]
+#
+#            mask1 = data.mask[:,0:60]
+#            mask2 = data.mask[:,60:]
+#            maskwind1 = dataUwind.mask[:,0:60]
+#            maskwind2 = dataVwind.mask[:,60:]
+#            maskhs1 = dataW3.mask[:,0:60]
+#            maskhs2 = dataW3.mask[:,60:]
+#
+#            lon1 = lon[0:60]
+#            lon2 = lon[60:]            
+#
+#            data_new = np.hstack((data2, data1))
+#            dataUwind_new = np.hstack((dataUwind2, dataUwind1))
+#            dataVwind_new = np.hstack((dataVwind2, dataVwind1))
+#            dataW3_new = np.hstack((dataW32, dataW31))
+#
+#            mask_new=np.hstack((mask2, mask1))
+#            maskhs_new=np.hstack((maskhs2, maskhs1))
+#            maskwind_new=np.hstack((maskwind2, maskwind1))
+#
+#            lon_new = np.hstack((lon2, lon1))
+#
+#            # Patch the discontinuity data (cyclic longitude).
+#            # Create new array.
+#            d = np.zeros((data.shape[0],data.shape[1]+1))
+#            dW3 = np.zeros((dataW3.shape[0],dataW3.shape[1]+1))
+#            dUwind = np.zeros((dataUwind.shape[0],dataUwind.shape[1]+1)) 
+#            dVwind = np.zeros((dataVwind.shape[0],dataVwind.shape[1]+1)) 
+#            lon_cyc = np.zeros(len(lon_new)+1)
+#            mask = np.zeros((data.shape[0],data.shape[1]+1))
+#            maskwind=np.zeros((data.shape[0],data.shape[1]+1))
+#            maskhs=np.zeros((data.shape[0],data.shape[1]+1))
+#
+#            #Fill masks.
+#            mask[:,0:-1] = mask_new[:,:]
+#            mask[:,-1] = mask_new[:,0]
+#            maskwind[:,0:-1] = maskwind_new[:,:]
+#            maskwind[:,-1] = maskwind_new[:,0]
+#            maskhs[:,0:-1] = maskhs_new[:,:]
+#            maskhs[:,-1] = maskhs_new[:,0]
+#
+#            #Fill datas.
+#            lon_cyc[0:-1] = lon_new[:]; lon_cyc[-1] = -lon_new[0]       
+#            d[:,0:-1] = data_new[:,:]
+#            d[:,-1] = data_new[:,0]
+#            dW3[:,0:-1] = dataW3_new[:,:]
+#            dW3[:,-1] = dataW3_new[:,0]        
+#            dUwind[:,0:-1] = dataUwind_new[:,:]
+#            dUwind[:,-1] = dataUwind_new[:,0]
+#            dVwind[:,0:-1] = dataVwind_new[:,:]
+#            dVwind[:,-1] = dataVwind_new[:,0]
+#        
+#            #Create masked datas
+#            d1 = np.ma.masked_array(d,mask=mask)
+#            d1Uwind=np.ma.masked_array(dUwind,mask=maskwind)
+#            d1Vwind=np.ma.masked_array(dVwind,mask=maskwind)
+#            d1hs=np.ma.masked_array(dW3,mask=maskhs)
+#
+#            #Create the grid (longitude,latitude) and actual position in the projection (x,y)
+#            lons, lats = np.meshgrid(lon_cyc,lat)
+#            x, y = m(lons, lats)
+#
+#            if plot_type == 'contour':
+#                # Plot ice field
+#                sc = m.contourf(x, y, d1, 10, cmap=reversed_map)
+#                # Rotate and interpolate wind for a clean reprensation of vectors in the projection.
+#                uproj,vproj,xx,yy = m.transform_vector(dUwind,dVwind,lon_cyc,lat,41,41,returnxy=True,masked=True)
+#                # Plot winds
+#                Q=axes[i].quiver(xx, yy, uproj, vproj)
+#                # Plot waves
+#                cont=axes[i].contour(x,y, dW3, colors='black')
+#
+#                axes[i].quiverkey(Q, 0.1, 0.1, 20, '20 m/s', labelpos='W')
+#            else:  # pcolor
+#                sc = m.pcolor(x, y, d1, cmap=reversed_map)
+#                uproj,vproj,xx,yy = m.transform_vector(d1Uwind,d1Vwind,lon_cyc,lat,41,41,returnxy=True,masked=True)
+#                axes[i].barbs(xx, yy, uproj, vproj, length=6, pivot='middle')
+#                cont=axes[i].contour(x,y, dW3, colors='black')
+#
+#        m.drawparallels(np.arange(-90.,120.,15.),labels=[1,0,0,0], size=16) # draw parallels
+#        m.drawmeridians(np.arange(0.,420.,30.),labels=[1,1,1,1], size=16) # draw meridians
+#        cb=fig.colorbar(sc, ax=axes[i])
+#        cb.ax.tick_params(labelsize=18)
+#        axes[i].clabel(cont, fontsize= 12)
+#        if var == 'ice' or var == 'aice':
+#            cb.set_label('Ice Concentration', size=20)
+#        elif var == 'ic1' or var == 'hi':
+#            cb.set_label('Ice Thickess [m]', size=20)
+#        elif var == 'ic5' or var == 'fsdrad':
+#            cb.set_label('Mean Floe Diameter [m]', size=20)
+#        elif var == 'airtmp':
+#            cb.set_label('Air temperature', size=20)
+#        elif var == 'glbrad':
+#            cb.set_label('Surface downward shortwave', size=20)
+#        i=i+1
+#
+#    plt.tight_layout()
+#    plt.subplots_adjust(top=0.97)
+##    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr, bbbox_to_anchor='tight', dpi=500)
+#    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr,dpi='figure',format='png', metadata=None,bbbox_inches='tight')
+#    print("------------"+case+"_WaveIce_"+datestr+" as been plotted---------------------")
 
 def plotOneVar(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon, repOUT, case, datestr, plot_type, list_var):
 
@@ -220,8 +220,11 @@ def plotOneVar(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon, rep
            mask = np.zeros((data.shape[0],data.shape[1]+1))
            lat_cyc = np.zeros((lat.shape[0],lat.shape[1]+1))       
            #Simply fill the arrays
-           mask[:,0:-1] = data.mask[:,:]
-           mask[:,-1] = data.mask[:,0]
+           maskNH=np.logical_or(lat==0, lat<0)
+
+           mask[:,0:-1] = data.mask[:,:]+maskNH[:,:]
+           mask[:,-1] = data.mask[:,0]+maskNH[:,0]
+
            lon_cyc[:,0:-1] = lon[:,:]; lon_cyc[:,-1] = lon[:,0]
            lat_cyc[:,0:-1] = lat[:,:]; lat_cyc[:,-1] = lat[:,0]
            d[:,0:-1] = data[:,:]
@@ -279,7 +282,7 @@ def plotOneVar(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon, rep
     plt.tight_layout()
     plt.subplots_adjust(top=0.97)
 #    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr, bbbox_to_anchor='tight', dpi=500)
-    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr+"_fsd",dpi='figure',format='png',metadata=None, bbbox_inches=None)
+    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr+"_fsd",dpi='figure',format='png',metadata=None, bbbox_inches='tight')
     print("------------"+case+"_WaveIce_"+datestr+"_fsd as been plotted---------------------")
 
 
@@ -330,10 +333,14 @@ def plotWaveIceGx3(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon,
            d = np.zeros((data.shape[0],data.shape[1]+1))
            lon_cyc = np.zeros((lon.shape[0],lon.shape[1]+1))
            mask = np.zeros((data.shape[0],data.shape[1]+1))
-           lat_cyc = np.zeros((lat.shape[0],lat.shape[1]+1))       
+           lat_cyc = np.zeros((lat.shape[0],lat.shape[1]+1))
+
+           maskNH=np.logical_or(lat==0, lat<0)
+
+           mask[:,0:-1] = data.mask[:,:]+maskNH[:,:]
+           mask[:,-1] = data.mask[:,0]+maskNH[:,0]
+      
            #Simply fill the arrays
-           mask[:,0:-1] = data.mask[:,:]
-           mask[:,-1] = data.mask[:,0]
            lon_cyc[:,0:-1] = lon[:,:]; lon_cyc[:,-1] = lon[:,0]
            lat_cyc[:,0:-1] = lat[:,:]; lat_cyc[:,-1] = lat[:,0]
            d[:,0:-1] = data[:,:]
@@ -392,7 +399,7 @@ def plotWaveIceGx3(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, lat, lon,
     plt.tight_layout()
     plt.subplots_adjust(top=0.97)
 #    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr, bbbox_to_anchor='tight', dpi=500)
-    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr,dpi='figure',format='png',metadata=None, bbbox_inches=None)
+    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr,dpi='figure',format='png',metadata=None, bbbox_inches='tight')
     print("------------"+case+"_WaveIce_"+datestr+" as been plotted---------------------")
 
 def create_wind_projection(path_a, file_a, path_g, file_g, basem, wind_var, nlon, nlat):
@@ -603,8 +610,9 @@ def plotWaveIceIdeal(fileCICE, fileWW3, repW3, repCI, repOUT, exp, datestr, xG, 
             var_2d=np.nan_to_num(dsCI[[v]][v].values.squeeze())
         u_wind=np.nan_to_num(dsCI[['uatm']]['uatm'].values.squeeze())
         v_wind=np.nan_to_num(dsCI[['vatm']]['vatm'].values.squeeze())
-        ax[i].set_xlim([2.5, 240])
-        ax[i].set_ylim([2.5, 240])
+#        ax[i].set_xlim([2.5, 240])
+#        ax[i].set_ylim([2.5, 240])
+
         ax[i].tick_params(labelsize=14)
         ax[i].set_xlabel('x [km]', size=16)
         ax[i].set_ylabel('y [km]', size=16)
@@ -629,7 +637,7 @@ def plotWaveIceIdeal(fileCICE, fileWW3, repW3, repCI, repOUT, exp, datestr, xG, 
     plt.tight_layout()
     plt.subplots_adjust(top=0.97)
 #    fig.savefig(repOUT+"/"+exp+"_WaveIce_"+datestr, bbbox_to_anchor='tight', dpi=500)
-    plt.savefig(repOUT+"/"+exp+"_WaveIce_"+datestr,dpi='figure',format='png',metadata=None, bbbox_inches=None)
+    plt.savefig(repOUT+"/"+exp+"_WaveIce_"+datestr,dpi='figure',format='png',metadata=None, bbbox_inches='tight')
     print("------------"+exp+"_WaveIce_"+datestr+" as been plotted---------------------")
 
 def main():
@@ -652,7 +660,8 @@ def main():
     parser.add_argument("coupledCICE", help="Specify if the run is coupled or not (CICE)")
     parser.add_argument("--iceIc", help="Specify the name of a netCDF file that contains the initial condition of the ice (will only work for uncoupled simulation).")
     parser.add_argument("--repIceIc", help="Specify the path of netCDF file that contains the initial condition of the ice (will only work for uncoupled simulation).")
-    args = parser.parse_args()
+
+    args, list_var = parser.parse_known_args()
 
     #Define variables
     pp_prod=args.pp_prod
@@ -670,10 +679,6 @@ def main():
         coupled="false"
 
     #list_var=['aice_ww', 'hice_ww', 'diam_ww'] #,'ic1','ic5'] #Ice concentration, Ice thickness, Mean floe size diameter
-
-    #Faudrait pouvoir avoir ca dans le fichier de config. 
-    #list_var=['aice', 'hi', 'fsdrad']
-    list_var=['fsdrad']
 
     start_y=args.start_y
     start_d=args.start_d
@@ -695,12 +700,18 @@ def main():
     # Generate grid
     if grid == 'wim2p5':
         #Hardcoded... could be the same as the other.
-        grdRes=2.5
-        grdMax=247.5
-        grdMin=-2.5
+#        grdRes=2.5
+#        grdMax=247.5
+#        grdMin=-2.5
+        grdRes=25
+        grdMax=2475
+        grdMin=-25
+#        grdRes=50
+#        grdMax=4950
+#        grdMin=-50
         xgrid=np.arange(grdMin, grdMax, grdRes)
         ygrid=np.arange(grdMin, grdMax, grdRes)
-    elif grid == 'wimgx3':
+    elif grid == 'wimgx3' or grid == 'wimgx1' or grid == 'wimtx1':
         datetimeStart=start_day
         if coupled == "true":
             datestrStart=str(datetimeStart.year).zfill(4)+"-"+str(datetimeStart.month).zfill(2)+"-"+str(datetimeStart.day).zfill(2)+"-"+str(datetimeStart.hour*3600).zfill(5)
@@ -798,8 +809,7 @@ def main():
 
         if grid == 'wim2p5':
             plotWaveIceIdeal(fileCI, fileW3, REP_IN_W3, REP_IN_CICE, REP_OUT, exp, datestrW3, xgrid, ygrid, list_var)
-        elif grid == 'wimgx3':
-            # Special case of regrided scenario (might delete).
+        elif grid == 'wimgx3' or grid == 'wimgx1' or grid == 'wimtx1':
             if len(list_var) == 1:
                plotOneVar(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, t_lat, t_lon, REP_OUT, exp, datestrW3, 'pcolor', list_var)
             else:
