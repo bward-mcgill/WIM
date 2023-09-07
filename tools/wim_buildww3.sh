@@ -45,7 +45,8 @@ do
    echo "|-----Compile $prog------|"
    #Compile
    if [ ${prog} = "ww3_shel" ]; then 
-       bash ${REP_BIN}/make_HYB ${prog}
+#       bash ${REP_BIN}/make_HYB ${prog}
+       bash ${REP_BIN}/w3_make ${prog}
    else
        bash ${REP_BIN}/w3_make ${prog}
    fi

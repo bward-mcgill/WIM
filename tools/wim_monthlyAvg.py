@@ -21,16 +21,22 @@ def avgHourlyFile(list_ts, list_var, nhour, REP_IN_CI, REP_IN_W3):
     dsAvg=dfInit.to_xarray()
     compteur=0
     for ts in list_ts:
+        
+        #Open each of the hourly files
         datetimeW3=ts
         datetimeCI=ts+timedelta(seconds=3600)
         datestrW3=str(datetimeW3.year).zfill(4)+"-"+str(datetimeW3.month).zfill(2)+"-"+str(datetimeW3.day).zfill(2)+"-"+str(datetimeW3.hour*3600).zfill(5)
         datestrCI=str(datetimeCI.year).zfill(4)+"-"+str(datetimeCI.month).zfill(2)+"-"+str(datetimeCI.day).zfill(2)+"-"+str(datetimeCI.hour*3600).zfill(5)
         nameCI="iceh_01h."+datestrCI+".nc"
         nameW3="ww3."+datestrW3+".nc"
+        nameW3ef="ww3."+datestrW3+"_efreq.nc"
         fileCI=REP_IN_CI+"/"+nameCI
         fileW3=REP_IN_W3+"/"+nameW3
+        fileW3ef=REP_IN_W3+"/"+nameW3ef
+
         temp_ds=xr.open_dataset(fileCI)
         temp_dsW3=xr.open_dataset(fileW3)
+        temp_dsW3ef=xr.open_dataset(fileW3ef)
 
         # For a CICE variable.
         for var in list_var:
@@ -40,6 +46,7 @@ def avgHourlyFile(list_ts, list_var, nhour, REP_IN_CI, REP_IN_W3):
                 dsSum[[var]][var].values=dsSum[[var]][var].values+temp_ds[[var]][var]
             
         # For a WW3 variable.
+        #Initialize variable
         if compteur == 0:
             dsSum['hs']=temp_ds['aice']
             dsSum[['hs']]['hs'].values=temp_dsW3[['hs']]['hs']
@@ -49,13 +56,18 @@ def avgHourlyFile(list_ts, list_var, nhour, REP_IN_CI, REP_IN_W3):
             dsSum[['uatm']]['uatm'].values=temp_dsW3[['uwnd']]['uwnd']
             dsSum['vatm']=temp_ds['aice']
             dsSum[['vatm']]['vatm'].values=temp_dsW3[['vwnd']]['vwnd']
+            dsSum['efreq']=temp_dsW3ef['efreq']
+            dsSum[['efreq']]['efreq'].values=temp_dsW3ef[['efreq']]['efreq']
+        #Sum each timestep
         else:
             dsSum[['hs']]['hs'].values=dsSum[['hs']]['hs'].values+temp_dsW3[['hs']]['hs']
             dsSum[['lm']]['lm'].values=dsSum[['lm']]['lm'].values+temp_dsW3[['lm']]['lm']
             dsSum[['uatm']]['uatm'].values=dsSum[['uatm']]['uatm'].values+temp_dsW3[['uwnd']]['uwnd']
             dsSum[['vatm']]['vatm'].values=dsSum[['vatm']]['vatm'].values+temp_dsW3[['vwnd']]['vwnd']
+            dsSum[['efreq']]['efreq'].values=dsSum[['efreq']]['efreq'].values+temp_dsW3ef[['efreq']]['efreq']
         compteur=compteur+1
 
+    # Average all
     for var in list_var:
         dsAvg=dsSum/nhour
     
@@ -104,16 +116,15 @@ def main():
         freqCoupU='h'
 
         list_ts=createListDateTime(list_avg[nAvg], freqCoup, freqCoupU, nhour)
-        strTimeIni=str(list_avg[nAvg].year).zfill(4)+str(list_avg[nAvg].month).zfill(2)+str(list_avg[nAvg].day).zfill(2)+str(list_avg[nAvg].hour*3600).zfill(5)
-        strTimeEnd=str(list_avg[nAvg+1].year).zfill(4)+str(list_avg[nAvg+1].month).zfill(2)+str(list_avg[nAvg+1].day).zfill(2)+str(list_avg[nAvg+1].hour*3600).zfill(5)
+        strTimeAvg=str(list_avg[nAvg].year).zfill(4)+'-'+str(list_avg[nAvg].month).zfill(2)
 
-        if not (os.path.isfile(REP_OUT+"/"+"iceh_avg."+strTimeIni+'-'+strTimeEnd+".nc")):
+        if not (os.path.isfile(REP_OUT+"/"+"iceh_avg."+strTimeAvg+".nc")):
             print("Averaging all files between : ",list_avg[nAvg], " and ", list_avg[nAvg+1])
             dsAvg=avgHourlyFile(list_ts, list_var, nhour, REP_IN_CI, REP_IN_W3)
-            print("Saving :", REP_OUT+"/"+"iceh_avg."+strTimeIni+"-"+strTimeEnd+".nc") 
-            dsAvg.to_netcdf(REP_OUT+"/"+"iceh_avg."+strTimeIni+'-'+strTimeEnd+".nc")
-#        else:
-#            print(REP_OUT+"/"+"iceh_avg."+strTimeIni+"-"+strTimeEnd+".nc"+" already exists !")     
+            print("Saving :", REP_OUT+"iceh_avg."+strTimeAvg+".nc") 
+            dsAvg.to_netcdf(REP_OUT+"/"+"iceh_avg."+strTimeAvg+".nc")
+        else:
+            print(REP_OUT+"/"+"iceh_avg."+strTimeAvg+".nc"+" already exists !")     
 
 #Call main
 if __name__ == "__main__":

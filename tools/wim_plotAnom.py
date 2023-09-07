@@ -23,12 +23,32 @@ from matplotlib import cm
 # import cmocean.cm as cmo
 
 
-def defineCBAnom(variable, varName):
+def defineCBAnom(variable, var):
 
-    cmap=cmo.balance
-
+    #cmap=cmo.balance()
+    cmap=plt.cm.RdBu
     v_lim = max([abs(variable.max()),abs(variable.min())])
-    cmap=cmo.crop(cmap,vmax=variable.max(),vmin=variable.min(),pivot=0)
+    # print(variable.max())
+    if var == 'aice':
+        #cmap=cmo.crop(cmap,vmax=0.012,vmin=-0.012,pivot=0, N=13, dmax=0.012)
+        bounds = [-0.12,-0.1,-0.08,-0.06,-0.04,-0.02, 0.02,0.04,0.06, 0.08,0.1,0.12]
+        bounds = [x*0.2 for x in bounds]
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    elif var == 'hi':
+        #cmap=cmo.crop(cmap,vmax=variable.max(),vmin=variable.min(),pivot=0)
+        bounds = [-0.12,-0.1,-0.08,-0.06,-0.04,-0.02, 0.02,0.04,0.06, 0.08,0.1,0.12]
+        bounds = [x*0.5 for x in bounds]
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    elif var == 'fsdrad':
+        bounds = [-600,-500,-400,-300,-200,-100,-50,50,100,200,300,400,500,600]
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    elif var == 'hs':
+        bounds = [-600,-500,-400,-300,-200,-100,-50,50,100,200,300,400,500,600]
+        bounds = [x*0.0001 for x in bounds]
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
+    else :
+        cmap=cmo.crop(cmap,vmax=variable.max(),vmin=variable.min(),pivot=0)
+    #v_lim = max([abs(variable.max()),abs(variable.min())])
 
 # if var == 'aice':
 # elif var == 'hi':
@@ -38,7 +58,7 @@ def defineCBAnom(variable, varName):
 # elif var == 'strwv' or var == 'strair':
 # elif var == 'sst'
 
-    return cmap
+    return cmap, norm
 
 
 def defineCB(variable, var):
@@ -46,15 +66,14 @@ def defineCB(variable, var):
     path_colormap="/aos/home/bward/wim/post-proc/cmo_colormap/"
 
     if var == 'aice':
-        cmap=plt.cm.YlGnBu.reversed()
-        bounds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 1]
-        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+        cmap=cmo.ice()
+        bounds = [0, 0.05, 0.10, 0.15, 0.20, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.995, 0.996,0.997, 0.998, 0.999, 1]
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
     elif var == 'hi':
         # cmap=cmo.matter().reversed()
-        #cmap=plt.cm.Spectral.reversed()
-        cmap=cmo.dense()
+        cmap=plt.cm.Spectral.reversed()
         bounds = [0, 0.2, 0.4, 0.6, 0.8, 1.2, 1.6, 2, 2.4, 2.8, 3.2, 3.6, 4]
-        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
     elif var == 'fsdrad':
         # cmap2=cmo.curl()
         # cmap=cmo.curl_pink().reversed()
@@ -63,18 +82,17 @@ def defineCB(variable, var):
         # test3=np.concatenate((test2,test))
         # cmap=ListedColormap(test3)
         cmap=cmo.matter()
-#        bounds = [0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25, 27.5, 30]
         bounds = [0, 10, 30, 60, 100, 180, 280, 424, 600, 860, 1160, 1500, 2000]
-        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
     elif var == 'dafsd_newi' or var == 'dafsd_latg' or var == 'dafsd_weld' :
         cmap=plt.cm.YlGnBu
         bounds = [0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-        bounds = [x*10**-7 for x in bounds]
+        bounds = [x*10**-6 for x in bounds]
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
     elif var == 'dafsd_wave':
         cmap=plt.cm.YlOrRd
         bounds = [0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-        bounds = [x*10**-7 for x in bounds]
+        bounds = [x*10**-6 for x in bounds]
         norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
     elif var == 'dafsd_latm':
         cmap=plt.cm.YlOrRd.reversed()
@@ -94,26 +112,26 @@ def defineCB(variable, var):
         cmap=cmo.speed()
         bounds = [0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
         bounds = [2*x*10**-2 for x in bounds]
-        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
     elif var == 'strnorm':
         cmap=cmo.speed()
         bounds=[0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
     elif var == 'lm':
         cmap=cmo.curl().reversed()
         bounds = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600]
-        norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+        norm = mpl.colors.BoundaryNorm(bounds, cmap.N, extend='both')
     else:
         cmap=plt.cm.Blues
     
     return cmap,norm
 
 
-def plotOneVar(dataCol, dataCont, dataVec, lat, lon, repOUT, case, datestr, plot_type, m, var):
+def plotOneVar(dataCol, dataCont, dataVec, lat, lon, repOUT, case, case2, datestr, plot_type, m, var):
 
     '''This function plots CICE data and creates a .png file.'''
 
-    cmap,norm=defineCB(dataCol, var)
+    cmap, norm=defineCBAnom(dataCol, var)
     # orig_map=plt.cm.get_cmap('Spectral')
     # reversed_map = orig_map.reversed()
 
@@ -197,7 +215,7 @@ def plotOneVar(dataCol, dataCont, dataVec, lat, lon, repOUT, case, datestr, plot
         sc = m.pcolor(x, y, d1, cmap=cmap, norm=norm)
 #Temporary?
         if dataCont.size != 0:
-            cont=axes.contour(x,y, d1Cont, colors='m') #, levels=[0.15, 0.8]) #, levels=[0.01, 0.05, 0.1, 0.5, 1, 2, 4, 8, 10])
+            cont=axes.contour(x,y, d1Cont, colors='k', levels=[0.15, 0.8])
             if(len(cont.allsegs) != 1):
                 axes.clabel(cont, fontsize= 12)
 
@@ -226,13 +244,13 @@ def plotOneVar(dataCol, dataCont, dataVec, lat, lon, repOUT, case, datestr, plot
     elif var == 'ic5' or var == 'fsdrad':
         cb.set_label('Mean Floe Diameter [m]', size=20)
     elif var == 'dafsd_newi':
-        cb.set_label('Change in FSD : new ice [1/s]', size=20)
+        cb.set_label('Change in FSD(12) : new ice [1/s]', size=20)
     elif var == 'dafsd_weld':
         cb.set_label('Change in FSD(12) : weld. [1/s]', size=20)
     elif var == 'dafsd_latg':
-        cb.set_label('Change in FSD: lat. g. [1/s]', size=20)
+        cb.set_label('Change in FSD(1) : lat. g. [1/s]', size=20)
     elif var == 'dafsd_latm':
-        cb.set_label('Change in FSD: lat. m. [1/s]', size=20)
+        cb.set_label('Change in FSD(1) : lat. m. [1/s]', size=20)
     elif var == 'dafsd_wave':
         cb.set_label('Change in FSD(1) : wave [1/s]', size=20)
     elif var == 'strair':
@@ -242,16 +260,16 @@ def plotOneVar(dataCol, dataCont, dataVec, lat, lon, repOUT, case, datestr, plot
     elif var == 'strnorm':
         cb.set_label('Normalized Stress [1]', size=20)
     elif var == 'hs':
-        cb.set_label('Significant Wave Height', size=20)
+        cb.set_label('Significant Wave Height [m]', size=20)
     elif var == 'lm':
         cb.set_label('Average Wavelenght', size=20)
 
-#    axes.set_title(datestr, fontsize=20)
+    axes.set_title(datestr, fontsize=20)
     plt.tight_layout()
     plt.subplots_adjust(top=0.97)
 #    plt.savefig(repOUT+"/"+case+"_WaveIce_"+datestr, bbbox_to_anchor='tight', dpi=500)
-    plt.savefig(repOUT+"/wim_"+case+"_"+datestr+"_"+var+".png",dpi='figure',format='png',metadata=None, bbbox_inches='tight')
-    print("------------"+"wim"+case+"_"+datestr+"_"+var+" as been plotted---------------------")
+    plt.savefig(repOUT+"/anom_"+case+"-"+case2+"_"+datestr+"_"+var+".png",dpi='figure',format='png',metadata=None, bbbox_inches='tight')
+    print("------------"+"anom_"+case+"-"+case2+"_"+datestr+"_"+var+" as been plotted---------------------")
 
 
 def create_wind_projection(dataX, dataY, path_g, file_g, path_out, basem, nlon, nlat):
@@ -265,7 +283,7 @@ def create_wind_projection(dataX, dataY, path_g, file_g, path_out, basem, nlon, 
     name=file_g[:-3]
     file_wind=path_out+"/"+name+"_vec.nc"
 
-    #Creer un nouveau dataset avec juste le vent  dedans.
+   #Creer un nouveau dataset avec juste le vent  dedans.
     df = pd.DataFrame()
     dsWind=df.to_xarray()
     dsWind['vecX']=(("latitude","longitude"),dataX)
@@ -282,7 +300,7 @@ def create_wind_projection(dataX, dataY, path_g, file_g, path_out, basem, nlon, 
     os.system('mv '+file_wind+"_grd "+file_wind)
 
     # Creer le fichier de directive pour l'interpolation sur une grille equilibre dependamment de la projection.
-    lonsout, latsout=basem.makegrid(41,41)
+    lonsout, latsout=basem.makegrid(31,31)
     new_grid_info=path_out+"/remap_griddes.info"
     np.savetxt(path_out+"/lat_remap.dat", latsout, fmt='%.2f')
     np.savetxt(path_out+"/lon_remap.dat", lonsout, fmt='%.2f')
@@ -379,12 +397,9 @@ def readVectorCICEWW3(REP_IN, file, lat, varVec):
 def readFsdVarCICE(REP_IN, file, lat, varFSD, nfsd_avg):
     if file != "none":
         ds=xr.open_dataset(REP_IN+'/'+file)
-        if varFSD == 'dafsd_weld' or varFSD == 'dafsd_wave':
-            data=np.squeeze(np.nan_to_num(ds[varFSD].values))
-            data=np.squeeze(data[nfsd_avg,:,:])
-        else:
-            data=np.squeeze(np.nan_to_num(ds[varFSD].values))
-            data=np.squeeze(np.sum(data, axis=0))
+        data=np.squeeze(np.nan_to_num(ds[varFSD].values))
+        # data=np.squeeze(np.average(data[nfsd_avgS:nfsd_avgE,:,:], axis=0))
+        data=np.squeeze(data[nfsd_avg,:,:])
         mask=np.logical_or(lat<0, data==0)
         data=ma.masked_array(data, mask=mask)
     else:
@@ -544,6 +559,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("pp_prod", help="Post-processing product (e.g. hourly or avg)")
     parser.add_argument("case", help="Name of the case (e.g. case01).")
+    parser.add_argument("caseAnom", help="Name of the case to compute anomalies (e.g. case01).")
     parser.add_argument("nts", help="Number of plot.", type=int)
     parser.add_argument("dt", help="Time step of CICE.", type=int)
     parser.add_argument("start_y", help="Year of the first plot.", type=int)
@@ -552,6 +568,8 @@ def main():
     parser.add_argument("start_s", help="Seconds of the first plot", type=int)
     parser.add_argument("rep_inW3", help="Path for WW3 output.")
     parser.add_argument("rep_inCI", help="Path for CICE output.")
+    parser.add_argument("rep_anomCI", help="Path for WW3 output to compute anomalies.")
+    parser.add_argument("rep_anomW3", help="Path for CICE output to compute anomalies.")
     parser.add_argument("rep_out", help="Path to store plot.")
     parser.add_argument("grid", help="Specify grid (default wim2p5)")
     parser.add_argument("outfreq", help="Specify output frequency (default same as dt)", type=int)
@@ -564,6 +582,7 @@ def main():
     parser.add_argument("vecVarX", help="Specify the x variable of the vector")
     parser.add_argument("vecVarY", help="Specify the y variable of the vector")
     parser.add_argument("region", help="Specify region (labrador or panarc)")
+
     parser.add_argument("--iceIc", help="Specify the name of a netCDF file that contains the initial condition of the ice (will only work for uncoupled simulation).")
     parser.add_argument("--repIceIc", help="Specify the path of netCDF file that contains the initial condition of the ice (will only work for uncoupled simulation).")
     args, list_var = parser.parse_known_args()
@@ -584,14 +603,16 @@ def main():
     start_day=datetime(start_y, start_m, start_d)+timedelta(seconds=start_s)
     REP_IN_W3=args.rep_inW3
     REP_IN_CICE=args.rep_inCI
+    REP_IN_W3_a=args.rep_anomCI
+    REP_IN_CICE_a=args.rep_anomCI
     REP_OUT=args.rep_out
     exp=args.case
+    exp_a=args.caseAnom
     add_contour=args.addCont
     contourVar=args.contVar
     add_vector=args.addVec
     vectorVar=[args.vecVarX, args.vecVarY]
     region=args.region
-
     #Define stuff
     if coupledWW3 == "true"  and coupledCICE == "true":
         coupled="true"
@@ -672,25 +693,32 @@ def main():
     for ts in list_ts:
         print("Time step "+str(i)+":",ts)
         fileCI,fileW3,date4str=findFilesCICEWW3(ts, pp_prod, coupled, coupledWW3, coupledCICE, timeStep, outfreqU, list_avg,i)
+        fileCI_a,fileW3_a,date4str=findFilesCICEWW3(ts, pp_prod, coupled, coupledWW3, coupledCICE, timeStep, outfreqU, list_avg,i)
         print("CICE file : "+REP_IN_CICE+"/"+fileCI, "WW3 file : "+REP_IN_W3+"/"+fileW3)
         for var in list_var:
 
         #Read variable for color
             if var in list_varCICE:
-                data=readDataCICEWW3(REP_IN_CICE, fileCI, t_lat, var)
+                data_1=readDataCICEWW3(REP_IN_CICE, fileCI, t_lat, var)
+                data_2=readDataCICEWW3(REP_IN_CICE_a, fileCI_a, t_lat, var)
             elif var in list_varWW3:
-                data=readDataCICEWW3(REP_IN_W3, fileW3, t_lat, var)
+                data_1=readDataCICEWW3(REP_IN_W3, fileW3, t_lat, var)
+                data_2=readDataCICEWW3(REP_IN_W3_a, fileW3_a, t_lat, var)
             elif var in list_varNonStdCICE:
-                data=readDataNonStdCICE(REP_IN_W3, fileW3, t_lat, var)
+                data_1=readDataNonStdCICE(REP_IN_W3, fileW3, t_lat, var)
+                data_2=readDataCICEWW3(REP_IN_W3_a, fileW3_a, t_lat, var)
             elif var in list_varFSDCICE:
                 if var == "dafsd_latm" or var == "dafsd_wave" or var == "dafsd_latg":
-                    data=readFsdVarCICE(REP_IN_W3, fileW3, t_lat, var, 0)
+                    data_1=readFsdVarCICE(REP_IN_W3, fileW3, t_lat, var, 0)
+                    data_2=readFsdVarCICE(REP_IN_W3_a, fileW3_a, t_lat, var, 0)
                 elif var == "dafsd_weld" or var == "dafsd_newi" :
-                    data=readFsdVarCICE(REP_IN_W3, fileW3, t_lat, var, 11)
+                    data_1=readFsdVarCICE(REP_IN_W3, fileW3, t_lat, var, 11)
+                    data_2=readFsdVarCICE(REP_IN_W3_a, fileW3_a, t_lat, var, 0)
             else:
                 print("Unknown var")
                 return
-
+            #Compute anom
+            data = data_1-data_2
             #Read variable for contour
             if add_contour:
                 if contourVar in list_varCICE:
@@ -706,21 +734,29 @@ def main():
                 if (vectorVar[0] in list_varVecCICE) and (vectorVar[1] in list_varVecCICE) :
                     dataVecX,dataVecY=readVectorCICEWW3(REP_IN_CICE, fileCI, t_lat, vectorVar)
                     uproj, vproj, xwind, ywind=create_wind_projection(dataVecX, dataVecY, REP_IN_CICE, fileCI, REP_INTERP, m, nlon, nlat)
+                    dataVecX1,dataVecY1=readVectorCICEWW3(REP_IN_CICE_a, fileCI_a, t_lat, vectorVar)
+                    uproj1, vproj1, xwind1, ywind1=create_wind_projection(dataVecX1, dataVecY1, REP_IN_CICE_a, fileCI_a, REP_INTERP, m, nlon, nlat)
+                    uprojA = uproj-uproj1
+                    vprojA = vproj-vproj1
                 elif (vectorVar[0] in list_varVecWW3) and (vectorVar[1] in list_varVecWW3):
                     dataVecX,dataVecY=readVectorCICEWW3(REP_IN_W3, fileW3, t_lat, vectorVar)
                     uproj, vproj, xwind, ywind=create_wind_projection(dataVecX, dataVecY, REP_IN_W3, fileW3, REP_INTERP, m, nlon, nlat)
+                    dataVecX1,dataVecY1=readVectorCICEWW3(REP_IN_W3_a, fileW3_a, t_lat, vectorVar)
+                    uproj1, vproj1, xwind1, ywind1=create_wind_projection(dataVecX1, dataVecY1, REP_IN_W3_a, fileW3, REP_INTERP, m, nlon, nlat)
+                    uprojA = uproj-uproj1
+                    vprojA = vproj-vproj1
             else:
-                uproj=np.array([])
-                vproj=np.array([])
+                uprojA=np.array([])
+                vprojA=np.array([])
                 xwind=np.array([])
                 ywind=np.array([])
 
-            dataVec=[uproj, vproj, xwind, ywind]
+            dataVec=[uprojA, vprojA, xwind, ywind]
 
             if grid == 'wim2p5':
                 plotWaveIceIdeal(data, dataCont, dataVec, REP_OUT, exp, datestrW3, xgrid, ygrid, list_var)
             if grid == 'wimgx3' or grid == 'wimgx1' or grid == 'wimtx1':
-                plotOneVar(data, dataCont, dataVec, t_lat, t_lon, REP_OUT, exp, date4str, 'pcolor', m, var)
+                plotOneVar(data, dataCont, dataVec, t_lat, t_lon, REP_OUT, exp, exp_a, date4str, 'pcolor', m, var)
         #         if len(list_var) == 1:
         #            plotOneVar(REP_IN_CICE, fileCI, REP_IN_W3, fileW3, nlon, nlat, t_lat, t_lon, REP_OUT, exp, datestrW3, 'pcolor', list_var)
         #         else:

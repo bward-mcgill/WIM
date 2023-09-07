@@ -38,6 +38,7 @@ REP_IMG=${REP_OUT}/img
 #Get to work !
 cd ${REP_WRK}
 
+echo `pwd`
 #----------------------Run each prog-----------------------------#
 
 for prog in $list_prog

@@ -5,13 +5,14 @@ from datetime import datetime, timedelta
 
 def printListTs(year_init, month_init, day_init, sec_init, ts, nts):
    list_ts=""
-   start_day=datetime(year=int(year_init), month=int(month_init), day=int(day_init), second=int(sec_init))
-
+   hour_init=int(sec_init)/3600
+   sec=int(sec_init)%3600
+   start_day=datetime(year=int(year_init), month=int(month_init), day=int(day_init), hour=int(hour_init), second=int(sec))
    if nts <= 0:
       list_ts=str(start_day.year).zfill(4)+str(start_day.month).zfill(2)+str(start_day.day).zfill(2)+str(start_day.hour*3600).zfill(5)
    else:
       for i in range(nts):
-         new_day=start_day+timedelta(seconds=sec_init+i*ts)
+         new_day=start_day+timedelta(seconds=sec+i*ts)
          if i == 0 :
             list_ts=list_ts+" "+str(new_day.year).zfill(4)+str(new_day.month).zfill(2)+str(new_day.day).zfill(2)+str(new_day.hour*3600).zfill(5)+" "+str(new_day.year).zfill(4)+str(new_day.month).zfill(2)+str(new_day.day).zfill(2)+str(new_day.hour*3600).zfill(5)
          else:

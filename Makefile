@@ -15,7 +15,11 @@ run: wim_launch post_proc
 case: ${WIM_REP}/wim_launcher.cfg
 	@bash ${WIM_REP_TOOLS}/wim_makeCase.sh ${WIM_REP}
 
-wim_launch: case
+#Different kind of launcher that mimic the NRC operational model (i.e. restart everyday from coupled simulation).
+nrc_launch:
+	@${WIM_REP_TOOLS}/wim_makeNRClaunch.sh ${WIM_REP}
+
+wim_launch:
 	@${WIM_REP}/wim_launcher.sh ${WIM_REP}
 
 README: 

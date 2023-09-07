@@ -1,4 +1,3 @@
-
 Wave Ice Model (WAVEWATCH III and CICE).
 Summary of the parameters used in each run.
 Benjamin Ward
@@ -25,3 +24,19 @@ McGill University
 |case77        |2005          |1             |1             |0             |3600s         |336           |same as case75, but with IC5 attenuation scheme
 |case78        |2005          |1             |1             |0             |3600s         |1             |Dynamic spin-up!
 |case79        |2007          |1             |1             |0             |0s            |0             |Dynamic spin-up without ocean forcing
+|case80        |2018          |1             |1             |0             |3600s         |744           |FSD spin up test, before fixing C. Bitz FSD bug
+|case81        |2018          |1             |1             |0             |3600s         |24            |FSD spin up test, after fixing C. Bitz FSD bug
+|case82        |2017          |1             |1             |0             |3600s         |8760          |Official FSD spin-up 2017
+|case83        |2018          |8             |7             |25200         |3600s         |3521          |IC4-M3, WRS
+|case84        |2018          |8             |7             |3600          |3600s         |3527          |IC4-M3, no WRS
+|case85        |2018          |3             |1             |0             |0s            |0             |no-Coupling
+|case86        |2018          |1             |1             |0             |3600s         |8760          |IC2-IS2, WRS
+|case87        |2018          |1             |1             |0             |3600s         |8760          |IC2-IS2, no WRS
+|case88        |2017          |1             |1             |0             |0s            |0             |no Coupling, no thermo
+|case89        |2018          |4             |4             |0             |3600s         |6600          |IC2+IS2 but with a 1 year spin-up using the same att. scheme
+|case90        |2018          |1             |4             |0             |3600s         |2160          |IC2+IS2 but with a 1 year spin-up using the same att. scheme, noWRS
+|case91        |2018          |3             |1             |0             |3600s         |744           |IC4-M3, run to prepare initial condition for the NRC operationnal experiment
+|case92        |2018          |3             |31            |0             |0s            |0             |NRC operational experiment, no coupling but with thermo
+|case93        |2018          |3             |31            |0             |0s            |0             |NRC operational experiment, no coupling, no thermo
+|case94        |2018          |3             |31            |0             |3600s         |24            |NRC operational experiment, coupling without WRS
+|case95        |2017          |1             |1             |0             |3600s         |17520         |IC4-M8 attenuation scheme with the FSD-spin up, WRS

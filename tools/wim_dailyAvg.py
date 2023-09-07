@@ -104,16 +104,15 @@ def main():
         freqCoupU='h'
 
         list_ts=createListDateTime(list_avg[nAvg], freqCoup, freqCoupU, nhour)
-        strTimeIni=str(list_avg[nAvg].year).zfill(4)+str(list_avg[nAvg].month).zfill(2)+str(list_avg[nAvg].day).zfill(2)+str(list_avg[nAvg].hour*3600).zfill(5)
-        strTimeEnd=str(list_avg[nAvg+1].year).zfill(4)+str(list_avg[nAvg+1].month).zfill(2)+str(list_avg[nAvg+1].day).zfill(2)+str(list_avg[nAvg+1].hour*3600).zfill(5)
+        strTimeAvg=str(list_avg[nAvg].year).zfill(4)+'-'+str(list_avg[nAvg].month).zfill(2)+'-'+str(list_avg[nAvg].day).zfill(2)
 
-        if not (os.path.isfile(REP_OUT+"/"+"iceh_avg."+strTimeIni+'-'+strTimeEnd+".nc")):
+        if not (os.path.isfile(REP_OUT+"/"+"iceh_avg."+strTimeAvg+".nc")):
             print("Averaging all files between : ",list_avg[nAvg], " and ", list_avg[nAvg+1])
             dsAvg=avgHourlyFile(list_ts, list_var, nhour, REP_IN_CI, REP_IN_W3)
-            print("Saving :", REP_OUT+"/"+"iceh_avg."+strTimeIni+"-"+strTimeEnd+".nc") 
-            dsAvg.to_netcdf(REP_OUT+"/"+"iceh_avg."+strTimeIni+'-'+strTimeEnd+".nc")
-#        else:
-#            print(REP_OUT+"/"+"iceh_avg."+strTimeIni+"-"+strTimeEnd+".nc"+" already exists !")     
+            print("Saving :", REP_OUT+"/"+"iceh_avg."+strTimeAvg+".nc") 
+            dsAvg.to_netcdf(REP_OUT+"/"+"iceh_avg."+strTimeAvg+".nc")
+        else:
+            print(REP_OUT+"/"+"iceh_avg."+strTimeAvg+".nc"+" already exists !")     
 
 #Call main
 if __name__ == "__main__":
