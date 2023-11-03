@@ -328,3 +328,5 @@ do
    echo "Computing time for the rest : ${timerEndRest}"
 done
 
+#Clean ww3 input file
+rm -rf ${W3_REP_INP}/ice_forcing-*.nc

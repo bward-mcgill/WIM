@@ -16,6 +16,7 @@ REP_MODEL=${1}
 exp=${2}
 dateTs=${3}
 
+echo "------------------------${exp}----------------------------------"
 i=1
 for arg in $@
 do
@@ -77,8 +78,10 @@ do
    fi
 
    if [ $prog = "ww3_shel" ]; then
-      mv restart001.ww3 restart_${dateTs}.ww3
-      ln -fs restart_${dateTs}.ww3 restart.ww3
+      # mv restart001.ww3 restart_${dateTs}.ww3
+      # ln -fs restart_${dateTs}.ww3 restart.ww3
+      # Clean restart each time
+      mv -f restart001.ww3 restart.ww3
    fi
 
 done

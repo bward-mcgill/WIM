@@ -40,3 +40,6 @@ McGill University
 |case93        |2018          |3             |31            |0             |0s            |0             |NRC operational experiment, no coupling, no thermo
 |case94        |2018          |3             |31            |0             |3600s         |24            |NRC operational experiment, coupling without WRS
 |case95        |2017          |1             |1             |0             |3600s         |17520         |IC4-M8 attenuation scheme with the FSD-spin up, WRS
+|case96        |2017          |1             |1             |0             |3600s         |17520         |IC5 attenuation scheme with the FSD-spin up, WRS
+|case12        |2017          |1             |1             |0             |3600s         |1             |Tried to reproduce exp 95 not working. Instead it looks like it is still using the IC4M3 att. scheme.
+|case13        |2017          |1             |1             |0             |3600s         |8760          |Same as 12 but everything recompiled from scratch

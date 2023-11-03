@@ -10,10 +10,10 @@ machine=`hostname`
 
 couplingVar="aice hi fsdrad"
 listVarOutCICE="dafsd_latg dafsd_latm dafsd_newi dafsd_wave dafsd_weld strairx strairy uvel vvel strwvx strwvy"
-list_year='2018'
-list_month="01 02 03"
+list_year='2017'
+list_month="11 12"
 #list_month='03'
-list_case='case11'
+list_case='case13'
 
 echo ${machine}
 
